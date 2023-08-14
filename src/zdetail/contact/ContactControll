@@ -1,0 +1,245 @@
+import com.kdk.myapp.auth.Auth;
+import com.kdk.myapp.auth.AuthProfile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
+import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+
+@RestController
+@RequestMapping(value = "/contacts")
+public class ContactController {
+
+
+/*
+----- 객체 생성을 정의하는 곳
+@Configuration
+public class ResourceConfig {
+
+    @Bean
+    // 메서드의 리턴타입의 클래스 의존성 주입을 할 수 있게됨
+    public Repository getRepo() {
+        Config config = new Config();
+        return new Repository(config);
+    }
+}
+------ 객체를 사용하는 곳(생성구문 사용X)
+public class A {
+  @Autowired
+  Repository repo;
+  public void findAll() {
+    repo.findAll();
+  }
+}
+
+public class B {
+  @Autowired
+  Repository repo;
+}
+ */
+
+    @Autowired
+    ContactRepository repo;
+
+    // GET /contacts
+    @GetMapping
+    public List<Contact> getContactList() {
+        List<Contact> list = repo.findAllByOrderByName();
+        return list;
+    }
+
+    @Auth
+    @GetMapping(value = "/paging")
+    public Page<Contact> getContactsPaging
+        (@RequestParam int page, @RequestParam int size,
+         @RequestAttribute AuthProfile authProfile) {
+        System.out.println(page);
+        System.out.println(size);
+        System.out.println(authProfile);
+
+        Sort sort = Sort.by("email").descending();
+
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        // 해당 사용자가 소유자인 연락처 목록만 조회
+        return repo.findByOwnerId(authProfile.getId(), pageRequest);
+    }
+
+    // GET /contacts/paging/searchByName?page=0&size=10&name=hong
+    @GetMapping(value = "/paging/searchByName")
+    public Page<Contact> getContactsPagingSearchName
+            (@RequestParam int page,
+             @RequestParam int size,
+             @RequestParam String name) {
+        System.out.println(page);
+        System.out.println(size);
+        System.out.println(name);
+
+        // 기본적으로 key 정렬(default)
+        Sort sort = Sort.by("email").descending();
+
+        // 페이지 매개변수 객체
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        return repo.findByNameContaining(name, pageRequest);
+    }
+
+    @GetMapping(value = "/paging/search")
+    public Page<Contact> getContactsPagingSearch
+            (@RequestParam int page,
+             @RequestParam int size,
+             @RequestParam String query) {
+        System.out.println(page);
+        System.out.println(size);
+        System.out.println(query);
+
+        // 기본적으로 key 정렬(default)
+        Sort sort = Sort.by("email").descending();
+
+        // 페이지 매개변수 객체
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        return repo.findByNameContainsOrPhoneContains
+                        (query, query, pageRequest);
+    }
+
+    // HTTP 1.1 POST /contacts
+    @Auth
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> addContact
+                            (@RequestBody Contact contact,
+                             @RequestAttribute AuthProfile authProfile) {
+
+        if(contact.getEmail() == null || contact.getEmail().isEmpty()) {
+            // 응답 객체 생성
+            Map<String, Object> res = new HashMap<>();
+            res.put("data", null);
+            res.put("message", "[email] field is required");
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(res);
+        }
+
+        // 해당 사용자의 해당 이메일 연락처 있는지를 확인
+        if(contact.getEmail() != null &&
+                repo.findById(
+                new ContactId(authProfile.getId(), contact.getEmail()))
+                        .isPresent()) {
+
+            Map<String, Object> res = new HashMap<>();
+            res.put("data", null);
+            res.put("message", "동일한 정보가 이미 존재합니다.");
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
+        }
+
+        // 2. --------- 데이터 생성
+        // 테이블에 레코드 추가
+        // key값이 테이블에 이미 있으면 update
+        // 없으면 insert 구문이 실행됨.
+
+        // 생성자의 id를 설정함
+        contact.setOwnerId(authProfile.getId());
+        // 테이블에 저장하고 생성된 객체를 반환
+        Contact savedContact = repo.save(contact);
+
+        // 3. --------- 응답 처리
+
+        if(savedContact != null) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("data", savedContact);
+            res.put("message", "created");
+
+            // HTTP Status Code: 201 Created
+            // 리소스가 정상적으로 생성되었음.
+            return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Auth
+    @DeleteMapping(value = "/{email}")
+    // @PathVariable("email") : 경로 문자열{email}과 변수명 String email이 동일하면 안 써도 된다.
+    public ResponseEntity removeContact(
+            @PathVariable String email,
+            @RequestAttribute AuthProfile authProfile) {
+        System.out.println(email);
+
+
+
+
+        Optional<Contact> contact = repo.findById(new ContactId(authProfile.getId(), email));
+        if(!contact.isPresent()){
+            // 404: NOT FOUND, 해당 경로에 리소스가 없다.
+            // DELETE /contacts/kdkcom@naver.com
+            // Response Status Code : 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        // 해당 연락처의 소유자와 삭제를 요청한 사람의 소유자가 일치하는 확인
+        if(contact.get().getOwnerId() != authProfile.getId()) {
+            // 403: Forbidden, 해당 리소스의 권한이 없다(금지됐다)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // 레코드(리소스-데이터베이스의파일일부분) 삭제
+        repo.deleteById(new ContactId(authProfile.getId(), email));
+
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    // PUT(전체수정), PATCH(일부수정)
+    // PUT /hong@gmail.com
+    // {"name":"길동", "phone":"010.."}
+
+    /*
+    @Data
+    class ContactModifyRequest {
+       private String name;
+       private String phone;
+    }
+     */
+    @PutMapping(value = "/{email}")
+    public ResponseEntity modifyContact
+            (@PathVariable String email,
+             @RequestBody ContactModifyRequest contact,
+             @RequestAttribute AuthProfile authProfile) {
+        System.out.println(email);
+        System.out.println(contact);
+
+        // 1. 키값으로 조회해옴
+        Optional<Contact> findedContact =
+                repo.findById(new ContactId(authProfile.getId(),email));
+
+        // 2. 해당 레코드가 있는지 확인
+        if(!findedContact.isPresent()){
+            // 404: NOT FOUND, 해당 경로에 리소스가 없다.
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        // 존재하는 레코드(키값, @Id값이 존재)
+        Contact toModifyContact = findedContact.get();
+        // 3. 조회해온 레코드에 필드값을 수정
+        // 매개변수에 name값이 있으면 수정
+        if(contact.getName() != null && !contact.getName().isEmpty()) {
+            toModifyContact.setName(contact.getName());
+        }
+        // 매개변수에 phone값이 있으면 수정
+        if(contact.getPhone() != null && !contact.getPhone().isEmpty()) {
+            toModifyContact.setPhone(contact.getPhone());
+        }
+
+        // (@Id 값이 존재하므로 update를 시도)
+        repo.save(toModifyContact);
+
+        // 200 OK 처리
+        return ResponseEntity.ok().build();
+    }
+}

@@ -1,0 +1,18 @@
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+public class PostService {
+    @Service  // 스프링 컨테이너가 이 클래스의 객체를 관리
+    // -> 해당 클래스의 객체를 인스턴스화해 필요한 곳에 주입해줄 수 있다.
+    @Autowired // 변수에 알맞은 객체를 자동으로 주입
+    PostRepository repo;
+    @Autowired
+    PostCommentRepository commentRepo;
+    @Transactional // 작업 실행 과정에서 문제가 발생했을 때 데이터 작업을 원래 상태로 롤백할 수 있는 기능을 제공
+    public void createComment(Post post, PostComment comment) {
+        commentRepo.save(comment);
+    }
+    repo.save(post);
+
+}

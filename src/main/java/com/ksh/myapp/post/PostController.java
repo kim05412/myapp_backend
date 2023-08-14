@@ -1,28 +1,37 @@
 package com.ksh.myapp.post;
 
+import com.ksh.myapp.auth.Auth;
+import com.ksh.myapp.auth.AuthProfile;
+import com.ksh.myapp.auth.entity.LoginRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
+import java.util.Map;
 
 public class PostController {
     @Autowired
     PostRepository repo;
     @Autowired
     LoginRepository logRepo;
-    @Autowired
-    PostCommentRepository commentRepo;
-    @Autowired
-    PostService service;
+
+//    @Autowired
+//    PostService service;
     @Autowired
     PostRepositorySupport repoSupport;
 
-
+    // posts 경로에 대한 모든 게시글 조회
     @GetMapping
     public List<Post> getPostList() {
-
-        //JPA 사용
-//        List<Post> list = repo.findAll(Sort.by("no").ascending());
         //Query 사용
         List<Post> list = repo.findPostSortByNo();
-
         return list;
     }
 
@@ -46,9 +55,7 @@ public class PostController {
         return repoSupport.searchPaging(query, pageRequest);
     }
 
-
     @Auth
-    @PostMapping
     public ResponseEntity<Map<String, Object>> addPost(@RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
 
         System.out.println(authProfile);
@@ -80,7 +87,6 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
-    @Auth
     @DeleteMapping(value = "/{no}")
     public ResponseEntity removePost(@PathVariable long no, @RequestAttribute AuthProfile authProfile) {
         System.out.println(no);
@@ -99,7 +105,6 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @Auth
     @PutMapping(value = "/{no}")
     public ResponseEntity modifyPost(@PathVariable long no, @RequestBody PostModifyRequest post, @RequestAttribute AuthProfile authProfile) {
         System.out.println(no);
@@ -128,8 +133,6 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
-    @Auth
-    @PostMapping("/{no}/comments")
     public ResponseEntity addComments(
             @PathVariable long no,
             @RequestBody PostComment postComment,
