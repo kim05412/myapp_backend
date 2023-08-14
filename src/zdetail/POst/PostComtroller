@@ -1,8 +1,20 @@
-package com.ksh.myapp.post;
-
+import com.kdk.myapp.auth.Auth;
+import com.kdk.myapp.auth.AuthProfile;
+import com.kdk.myapp.auth.entity.LoginRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.*;
 
+@RestController // RESTful 웹 서비스로 동작하도록 설정
+@RequestMapping(value = "/posts")
 public class PostController {
+
     @Autowired
     PostRepository repo;
     @Autowired
@@ -36,38 +48,61 @@ public class PostController {
         return repo.findAll(pageRequest);
     }
 
-
+    //    @GetMapping(value = "/paging/search")
+//    public Page<Post> getPostsPagingCreator
+//            (@RequestParam int page, @RequestParam int size, @RequestParam String query){
+//        System.out.println(page + "2");
+//        System.out.println(size + "2");
+//        System.out.println(query + "2");
+//
+//        Sort sort = Sort.by("no").descending();
+//        PageRequest pageRequest = PageRequest.of(page, size, sort);
+//        return  repo.findByCreatorNameContains(query, pageRequest);
+//    }
     @GetMapping(value = "/paging/search")
     public Page<Post> getPostsPagingSearch
     (@RequestParam int page, @RequestParam int size, @RequestParam String query) {
         Sort sort = Sort.by("no").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
+        // JPA query creation
+//        return repo.findByCreatorNameContainsOrContentContains(query, query, pageRequest);
+
+        // QueryDSL
         return repoSupport.searchPaging(query, pageRequest);
     }
 
-
+    //title, content 필수 속성
     @Auth
     @PostMapping
     public ResponseEntity<Map<String, Object>> addPost(@RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
 
+        //1. 입력값 검증(title, content)
+        // -> 입력값 오류(빈 값)가 있으면 400 에러 띄움
+        //제목과 컨텐트 내용이 비어있으면 내보내는 400번 코드
         System.out.println(authProfile);
 
         if (post.getTitle() == null || post.getContent() == null || post.getTitle().isEmpty() || post.getContent().isEmpty()) {
-
+//            Map<String, Object> result = ;
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+        //2. 채번: 번호를 딴다(1...2, 3...)
+        //데이터베이스의 auto_increment를 사용할 것이므로
+        // 아래 2줄은 필요없게 된다. AtomicLong 필요없음.
+//        long no = num.incrementAndGet();
+//        post.setNo(no);
 
-
+        //3. 시간값, 게시자 이름 설정(set필드명(..))
 
         post.setCreatorName(authProfile.getNickname());
         post.setCreatedTime(new Date().getTime());
 
         post.setCreatorId(authProfile.getId());
-
+        //생성된 객체를 반환
         Post savedPost = repo.save(post);
 
 
+        //생성된 객체가 존재하면 null값이 아닐 때
         if (savedPost != null) {
             Map<String, Object> res = new HashMap<>();
             res.put("data", savedPost);
@@ -77,7 +112,7 @@ public class PostController {
         }
 
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().build(); // 이렇게하면 그냥 생성되고 끝!
     }
 
     @Auth
@@ -128,6 +163,8 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
+    // 하위객체(테이블) 추가하기
+    // POST /posts/{no}/comments
     @Auth
     @PostMapping("/{no}/comments")
     public ResponseEntity addComments(
@@ -140,14 +177,17 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
+        // 커멘트 추가
         postComment.setPost(post.get());
         postComment.setOwnerId(authProfile.getId());
         postComment.setOwnerName(authProfile.getNickname());
 
+        // 커멘트 건수 증가 및 최근 커멘트 표시
         Post findedPost = post.get();
         findedPost.setLatestComment(postComment.getContent());
         findedPost.setCommentCnt(post.get().getCommentCnt() + 1);
 
+        // 트랜잭션 처리
         service.createComment(findedPost, postComment);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
