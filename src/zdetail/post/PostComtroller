@@ -11,14 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController // RESTful 웹 서비스로 동작하도록 설정
-@RequestMapping(value = "/posts") // 모든 메소드의 기본 요청 경로를 설정
+@RestController // RESTful -> HTTP 요청을 처리하는 데 사용되는 핸들러 메서드
+@RequestMapping(value = "/posts") // 해당 클래스의 모든 메소드의 기본 요청 경로를 설정
 public class PostController {
 
-// 스프링 빈으로 생성된 객체들(PostRepository, LoginRepository, PostCommentRepository, PostService, PostRepositorySupport)
-// 의 의존성 주입
+// 자동으로 해당 클래스의 객체를 주입-> 주입되는 객체는 스프링이 관리하는 빈(Bean) 중, 타입이 일치하는 것이 선택됨.
     @Autowired
-    PostRepository repo;
+    PostRepository repo; //db 작업 처리 인.페
     @Autowired
     LoginRepository logRepo;
     @Autowired

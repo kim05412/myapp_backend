@@ -1,0 +1,32 @@
+// 데이터베이스의 테이블과 매핑되는 객체로서,
+ //JPA(Java Persistence API)를 통해 데이터베이스에 접근하고 조작할 수 있도록 도와주는 역할
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity //클래스가 JPA 엔티티 -> 이 클래스의 인스턴스들은 데이터베이스의 테이블과 매핑
+public class Login {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    // candidate key(후보키, PK가 가능한 키, 유일성+대표성)
+    // 시스템의 PK로 사용적합X
+    // clustered-index로 사용하기가 부적합
+    @Column(unique = true)
+    private String username;
+
+    @Column(length = 500)
+    private String secret;
+
+    // 관계테이블에 키값만 저장
+    private long profileId;
+}

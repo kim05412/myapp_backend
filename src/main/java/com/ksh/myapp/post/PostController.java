@@ -7,25 +7,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+@RestController
+@RequestMapping(value = "/posts")
 public class PostController {
     @Autowired
     PostRepository repo;
     @Autowired
     LoginRepository logRepo;
 
-//    @Autowired
-//    PostService service;
     @Autowired
-    PostRepositorySupport repoSupport;
+    PostService service;
+//    @Autowired
+//    PostRepositorySupport repoSupport;
 
     // posts 경로에 대한 모든 게시글 조회
     @GetMapping
@@ -51,11 +50,14 @@ public class PostController {
     (@RequestParam int page, @RequestParam int size, @RequestParam String query) {
         Sort sort = Sort.by("no").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
+        // JPA query creation
+        return repo.findByCreatorNameContainsOrContentContains(query, query, pageRequest);
 
-        return repoSupport.searchPaging(query, pageRequest);
+//        return repoSupport.searchPaging(query, pageRequest);
     }
 
     @Auth
+    @PostMapping
     public ResponseEntity<Map<String, Object>> addPost(@RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
 
         System.out.println(authProfile);
@@ -132,29 +134,5 @@ public class PostController {
         //ok 처리
         return ResponseEntity.ok().build();
     }
-
-    public ResponseEntity addComments(
-            @PathVariable long no,
-            @RequestBody PostComment postComment,
-            @RequestAttribute AuthProfile authProfile) {
-
-        Optional<Post> post = repo.findById(no);
-        if(!post.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        postComment.setPost(post.get());
-        postComment.setOwnerId(authProfile.getId());
-        postComment.setOwnerName(authProfile.getNickname());
-
-        Post findedPost = post.get();
-        findedPost.setLatestComment(postComment.getContent());
-        findedPost.setCommentCnt(post.get().getCommentCnt() + 1);
-
-        service.createComment(findedPost, postComment);
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
 
 }
