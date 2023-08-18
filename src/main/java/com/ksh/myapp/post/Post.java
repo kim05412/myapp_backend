@@ -17,6 +17,11 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 //    DB의 자동 증가(auto-increment)-> 기본 키(primary key) 값을 생성
     private long id; //null(x)
-    private
+    private int menuType;
+    private String title;
+    private String menuName;
+    private String address;
+    private String reviewContent;
+
 
 }
