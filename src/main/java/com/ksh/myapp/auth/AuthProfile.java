@@ -1,4 +1,4 @@
-package com.ksh.myapp.Auth;
+package com.ksh.myapp.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

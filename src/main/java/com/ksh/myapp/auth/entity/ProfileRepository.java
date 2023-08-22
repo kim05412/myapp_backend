@@ -1,4 +1,4 @@
-package com.ksh.myapp.Auth.entity;
+package com.ksh.myapp.auth.entity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,12 +1,11 @@
-package com.ksh.myapp.Auth.request;
+package com.ksh.myapp.auth.request;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
 public class SigngupRequest {
-    @Data
-    @NoArgsConstructor
-    public class SignupRequest {
         private String username;
         private String password;
         private String nickname;
@@ -14,5 +13,5 @@ public class SigngupRequest {
         private String company;
         private String address;
         private String img;
-    }
+
 }
