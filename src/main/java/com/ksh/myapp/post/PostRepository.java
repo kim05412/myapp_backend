@@ -17,6 +17,6 @@ public interface PostRepository extends JpaRepository<Post,Integer> {  //PostRep
 
     // 매뉴타입로 데이터 검색
     @Query(value = "select * from post where type = :type", nativeQuery = true)
-    List<Post> findAllPostByType(Integer type);
+    Optional<Post> findAllPostByType(Integer type);
 
 }

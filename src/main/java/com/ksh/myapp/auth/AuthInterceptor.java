@@ -6,6 +6,7 @@ import com.ksh.myapp.auth.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor; // 컨트롤러의 요청 처리 이전에 호출
 
@@ -17,6 +18,8 @@ import java.lang.reflect.Method;
 // 2.인증이 필요한 경우에 토큰 인증 및 토큰 검증
 //  true-> Authconntroller로 요청 전달
 // false -> 요청 전달 안함고 종료.
+@Component // 해당 클래스가 Spring의 관리 대상인 '빈(Bean)'임을 나타냄
+//->등록->WebMvcConfig에 Bean주입 가능
 public class AuthInterceptor implements HandlerInterceptor {
     @Autowired
     JwtUtil jwt; //JWT(JSON Web Token)을 사용하여 사용자 인증을 처리

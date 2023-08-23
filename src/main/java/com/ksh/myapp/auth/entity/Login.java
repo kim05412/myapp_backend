@@ -3,7 +3,7 @@ package com.ksh.myapp.auth.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-//import lombok.Data;
+import lombok.Data;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

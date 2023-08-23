@@ -27,15 +27,16 @@ dependencies {
 	// https://mvnrepository.com/artifact/at.favre.lib/bcrypt
 	implementation group: 'at.favre.lib', name: 'bcrypt', version: '0.10.2'
 
+	// spring initializr 프로젝트 셋업할 때
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	// Querydsl 의존성 추가
-	implementation 'com.querydsl:querydsl-jpa:4.4.0'
-	annotationProcessor 'com.querydsl:querydsl-apt:4.4.0:jpa'
+//	implementation ('com.querydsl:querydsl-jpa:4.4.0')
+//	annotationProcessor ('com.querydsl:querydsl-apt:4.4.0:jpa')
 	// build/generated/sources/annonationProcesser에 QClass가 추가됨
 	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
 	annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta") // the `jakarta` qualifier
