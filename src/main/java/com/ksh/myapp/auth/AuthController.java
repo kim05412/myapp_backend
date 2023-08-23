@@ -25,12 +25,8 @@ public class AuthController {
     private JwtUtil jwt;
 
     @PostMapping(value = "/signup")
-    public ResponseEntity signUp(@RequestBody SigngupRequest.SignupRequest req) {
+    public ResponseEntity signUp(@RequestBody SigngupRequest.req) {
         System.out.println(req);
-
-        // 1. Validation
-        // 입력값 검증
-        // 사용자이름없거나/중복이거나, 패스워드없거나, 닉네임, 이메일 없음...
 
         // 2. Buisness Logic(데이터 처리)
         // profile, login 생성 트랜잭션 처리
