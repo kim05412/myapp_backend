@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data //-> service에서 저장된 정보 불러오기
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // -> service에서 id build로 생성 가능
+@Builder // -> service에서 build 패턴 가능
 @Entity // db 프로핑 정보 데이터 저장-> 인증 기능 가능하게
 public class Profile {
     @Id

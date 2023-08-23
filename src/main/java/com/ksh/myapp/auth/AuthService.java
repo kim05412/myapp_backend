@@ -26,31 +26,32 @@ public class AuthService {
         this.profileRepo = profileRepo;
     }
 
-    //새로운 사용자의 신원 정보를 생성
+    //DB에 새로운 사용자의 신원 정보를 생성-> 로그인시: 회원가입시 생성한 프로필 정보와 로그인 정보의 연결을 통해 -> 현재 입력한 정보와의 일치여부 검증
     @Transactional // 회원가입시 로그인정보와 프로필 정보 동시에 처리->데이터 일관성 유지
     public long createIdentity(SigngupRequest req) {
-        // 1. login 정보를 insert
+        // 1. new login 정보를 insert
+        // 로그인 새 정보를 위한 객체 생성
         Login toSaveLogin =
-                Login.builder()
-                        .username(req.getUsername())
-                        .secret(hash.createHash(req.getPassword())) // 비밀번호 해싱
+                Login.builder() //빌더 패턴 -> 순서X
+                        .username(req.getUsername()) //입력한 이름 가져옴
+                        .secret(hash.createHash(req.getPassword())) // 입력한 비밀번호 해싱해서 저장
                         .build(); // 해싱한 비번 결과 반환
-        Login savedLogin = repo.save(toSaveLogin);
+        Login savedLogin = repo.save(toSaveLogin); // 로그인을 위한 데이터 DB에 저장->저장된 값 받음
 
-        // 2. profile 정보를 insert(login_id포함)하고 레코드의 id값을 가져옴;
-        Profile toSaveProfile =
-                Profile.builder()
-                        .nickname(req.getNickname())
-                        .login(savedLogin)
-                        .build();
-        long profileId = profileRepo.save(toSaveProfile).getId();
+        // 2. new profile 정보를 insert(login_id포함)하고 레코드의 id값을 가져옴;
+        Profile toSaveProfile = // 새 프로필을 위한 객체 생성
+                Profile.builder() //빌더 패턴 사용
+                        .nickname(req.getNickname()) //사용자가 입력한 닉네임 가져와서 저장
+                        .login(savedLogin) // 연결할 로그인 정보(이전단계에서 저장된 로그인 정보-일관성 유지) 가져와서 저장
+                        .build(); //생성한거 반환
+        long profileId = profileRepo.save(toSaveProfile).getId(); // 프로필 정보를 db에 저장->프로필 정보 중 id값만 추출-> 할당
 
         // 3. 로그인 정보에는 profile_id값만 저장
-        savedLogin.setProfileId(profileId);
-        repo.save(savedLogin);
+        savedLogin.setProfileId(profileId); // 이전의 생성된 login정보 객체에 profile의 id 추가하고 저장 => 연관성 발생=>로그인시 프로필 참조 가능
+        repo.save(savedLogin); // 변경 login정보를 da에 다시 저장
 
-        // 4. profile_id를 반환
-        return profileId;
+        // 4. 생성된 profile정보의 id를 반환
+        return profileId; //-> ID는 이후에 프로필 정보를 참조하거나 연결된 작업에 사용
     }
 
 
