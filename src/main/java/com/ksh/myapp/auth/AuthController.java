@@ -1,18 +1,14 @@
 package com.ksh.myapp.auth;
 
-import com.ksh.myapp.auth.entity.Login;
 import com.ksh.myapp.auth.entity.LoginRepository;
 import com.ksh.myapp.auth.entity.ProfileRepository;
 import com.ksh.myapp.auth.request.SigngupRequest;
 import com.ksh.myapp.auth.util.HashUtil;
 import com.ksh.myapp.auth.util.JwtUtil;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController //HTTP메서드(GET,POST,PUT,DELETE) -> 메소드의 반환값은 HTTP 응답 본문(Body)에 직접 작성:jason형식
 @RequestMapping("/auth") //내부의 모든 요청 핸들링 메서들의 URL 접두사

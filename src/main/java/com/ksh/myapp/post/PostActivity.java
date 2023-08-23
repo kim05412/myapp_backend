@@ -1,4 +1,5 @@
-package com.ksh.myapp.auth.entity;
+package com.ksh.myapp.post;
+
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,20 +9,17 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@Entity
-@AllArgsConstructor
 @NoArgsConstructor
-public class Login {
+@AllArgsConstructor
+@Entity
+public class PostActivity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    private String content;
 
-    @Column(unique = true)
-    private String username;
+    @ManyToOne // 사용자가 여러 포스트 작성
+    private Post post;
 
-    @Column(length = 500)
-    private String secret;
-
-    // 관계테이블에 키값만 저장
-    private long profileId;
 }

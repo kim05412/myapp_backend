@@ -15,3 +15,4 @@ public class AuthConfiguration {
     @Bean
     public JwtUtil jwtUtil() { return new JwtUtil(); }
 }
+

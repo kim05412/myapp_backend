@@ -18,10 +18,10 @@ public class PostController {
     @Autowired // 자동 초기화
     private PostRepository postRepository; // 멤버 변수
 
-    // 메뉴타입으로 조회
+    // 기본: 최신순 조회
     @GetMapping
-    public List<Post> getPostList(@RequestParam Integer type) {
-        List<Post> list = repo.findAllPostByType(type);
+    public List<Post> getPostList() {
+        List<Post> list = repo.findPostsSortByNo();
         return list;
     }
 

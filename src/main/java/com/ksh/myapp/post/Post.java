@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor //빈 생성자
 @AllArgsConstructor //초기화
 @Builder  // 타입에 맞춰 자동 할당
-
 @Data
 @Entity  //JPA->DB 테이블 연결
 public class Post {
