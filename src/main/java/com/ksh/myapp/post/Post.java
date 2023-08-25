@@ -12,17 +12,12 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity  //JPA->DB 테이블 연결
 public class Post {
-    @Id
-    private long ownerId;
-    @Id
-    private String nickname;
-
     @Id // DB 테이블의 PK로 설정
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 //    DB의 자동 증가(auto-increment)-> 기본 키(primary key) 값을 생성
     private Long no; //null(x)
     @Column(nullable = false)
-    private int type;
+    private Long type;
     @Column(nullable = false)
     private String title;
     @Column(length = 1024 * 1024 * 20) // MySQL에서는 longtext로 바뀜
@@ -33,7 +28,7 @@ public class Post {
     @Column(nullable = false)
     private String address;
     @Column(nullable = false)
-    private String reviewContent;
+    private String review;
 
     private Long createdTime; // null값 가능
 

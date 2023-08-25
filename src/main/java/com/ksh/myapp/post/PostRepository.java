@@ -27,10 +27,11 @@ public interface PostRepository extends JpaRepository<Post,Integer> {  //PostRep
     List<Post> findPostByMenuType(@Param("type") Integer type);
 
     Optional<Post> findPostByNo(Long no);
-    Page<Post> findByCreatorNameContains(String creatorName, Pageable pageable);
+    Page<Post> findByNameContains(String name, Pageable pageable);
+    Page<Post> findByTypeContains(String type, Pageable pageable);
     Page<Post> findByNo(long no, Pageable pageable);
-    Page<Post> findByCreatorId(long creatorId, Pageable pageable);
-    Page<Post> findByCreatorNameContainsOrContentContains(String creatorName, String content, Pageable pageable);
+//    Page<Post> findById(long id, Pageable pageable);
+    Page<Post> findByNameContainsOrTypeContains(String name, String type, Pageable pageable);
 
 
 }

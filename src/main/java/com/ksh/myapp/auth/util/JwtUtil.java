@@ -47,15 +47,15 @@ public class JwtUtil {
             // 토큰 검증 제대로 된 상황
             // 토큰 페이로드(데이터, subject/claim)를 조회
            Long id = Long.valueOf(decodedJWT.getSubject());
-           String nickname = decodedJWT
-                            .getClaim("nickname").asString();
-           String username = decodedJWT
-                            .getClaim("username").asString();
+//           String nickname = decodedJWT
+//                            .getClaim("nickname").asString();
+//           String username = decodedJWT
+//                            .getClaim("username").asString();
 
-           return AuthProfile.builder()
+            return AuthProfile.builder()
                    .id(id)
-                   .username(username)
-                   .nickname(nickname)
+//                   .username(username)
+//                   .nickname(nickname)
                    .build();
 
         } catch (JWTVerificationException e) {
