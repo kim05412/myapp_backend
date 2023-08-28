@@ -18,11 +18,16 @@ public class Profile {
 
     @Column(nullable = false)
     private String nickname;
-    private int birthyear;
+    private Long birthyear;
     private String company;
     private String address;
 
-    @OneToOne(fetch = FetchType.LAZY) // 포스트 조회와 동시에 모든 포스트의 작성자정보 다 불러옴-> 비효율적
-    //  profile_id 컬럼이 FK로 생성됨 :signup->login
+    @OneToOne
     private Login login;
+
+//    @OneToOne(fetch = FetchType.LAZY) // 포스트 조회와 동시에 모든 포스트의 작성자정보 다 불러옴-> 비효율적
+//    //  profile_id 컬럼이 FK로 생성됨 :signup->login
+//    private Login login;
+
+
 }

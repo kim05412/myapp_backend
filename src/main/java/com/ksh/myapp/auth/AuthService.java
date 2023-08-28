@@ -32,7 +32,7 @@ public class AuthService {
         // 로그인 새 정보를 위한 객체 생성
         Login toSaveLogin =
                 Login.builder() //빌더 패턴 -> 순서X
-                        .username(req.getUsername()) //입력한 이름 가져옴
+                        .username(req.getUserId()) //입력한 이름 가져옴
                         .secret(hash.createHash(req.getPassword())) // 입력한 비밀번호 해싱해서 저장
                         .build(); // 해싱한 비번 결과 반환
         Login savedLogin = repo.save(toSaveLogin); // 로그인을 위한 데이터 DB에 저장->저장된 값 받음

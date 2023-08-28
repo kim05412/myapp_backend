@@ -31,6 +31,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "http://127.0.0.1:5500",
                         "http://192.168.100.94:5500",
                         "http://localhost:5502",
+                        "http://127.0.0.1:5502",
                         "http://192.168.100.94:5502"
                 ) // 특정 origin(호스트) 접근 허용
                 .allowedMethods("*"); // 모든 HTTP 메서드 허용(GET, POST.....)

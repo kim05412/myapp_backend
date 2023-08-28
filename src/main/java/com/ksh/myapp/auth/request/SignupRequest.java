@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignupRequest {
-        private String username;
+        private String userId;
         private String password;
         private String nickname;
         private Long year;

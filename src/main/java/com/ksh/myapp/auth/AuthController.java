@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Optional;
 
 @RestController //HTTP메서드(GET,POST,PUT,DELETE) -> 메소드의 반환값은 HTTP 응답 본문(Body)에 직접 작성:jason형식
@@ -39,52 +41,74 @@ public class AuthController {
 
 
     //회원가입 요청 처리
-    @PostMapping(value = "/signup") //jason->java 형태
-    public ResponseEntity signUp(@RequestParam String username,@RequestParam String password,@RequestParam String nickname, @RequestParam long year,@RequestParam String companyName,@RequestParam String companyAddress, MultipartFile businessCard) {
-//        if (businessCard.isEmpty()) {
-//            return ResponseEntity.badRequest().body("업로드할 파일을 선택해주세요.");
-//        }
-        // jason 아닌 form 형식 데이터 받기
-        SignupRequest createUser = SignupRequest.builder()
-                .username(username)
-                .password(password)
-                .nickname(nickname)
-                .year(year)
-                .companyName(companyName)
-                .companyAddress(companyAddress)
-                .businessCard(businessCard)
-                .build();
+    @PostMapping(value = "/signup")
+    public ResponseEntity signUp(
+            @RequestParam("file") MultipartFile imageFile,
+            @RequestParam("userId") String userId,
+            @RequestParam("password") String password,
+            @RequestParam("nickname") String nickname,
+            @RequestParam("year") Long year,
+            @RequestParam("companyName") String companyName,
+            @RequestParam("companyAddress") String companyAddress) {
 
-        // 1.Validation(입력값 검증): interceptor -> 인증 필요한 요청 중 검증 완료 후-> controller로 전달
-        // 2. Business Logic(DB데이터 처리):service->회원가입시, 로그인-프로필 객체 일관성(트랜잭션 처리)
-        long profileId = service.createIdentity(createUser);
-        System.out.println(createUser);
+        if (!isValidUserData(userId, password, nickname, year, companyName, companyAddress, imageFile)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
 
+        try {
+            byte[] imageBytes = imageFile.getBytes();
+            String encodedImage = Base64.getEncoder().encodeToString(imageBytes);
 
-        // 3. Response
-        // 201: created
-        return ResponseEntity.status(HttpStatus.CREATED).body(profileId);
+            SignupRequest signupRequest = createSignupRequest(userId, password, nickname, year, companyName, companyAddress, encodedImage);
+
+            long profileId = service.createIdentity(signupRequest);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(profileId);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
+    private boolean isValidUserData(String userId, String password, String nickname, Long year, String companyName, String companyAddress, MultipartFile imageFile) {
+        return userId != null && !userId.isEmpty() &&
+                password != null && !password.isEmpty() &&
+                nickname != null && !nickname.isEmpty() &&
+                year != null &&
+                companyName != null && !companyName.isEmpty() &&
+                companyAddress != null && !companyAddress.isEmpty() &&
+                imageFile != null && !imageFile.isEmpty();
+    }
+
+    private SignupRequest createSignupRequest(String userId, String password, String nickname, Long year, String companyName, String companyAddress, String encodedImage) {
+        SignupRequest signupRequest = new SignupRequest();
+        signupRequest.setUserId(userId);
+        signupRequest.setPassword(password);
+        signupRequest.setNickname(nickname);
+        signupRequest.setYear(year);
+        signupRequest.setCompanyName(companyName);
+        signupRequest.setCompanyAddress(companyAddress);
+        signupRequest.setBusinessCard(encodedImage);
+        return signupRequest;
+    }
 
     //3. (브라우저) 쿠키를 생성(도메인에 맞게)
     @PostMapping(value = "/signin")
     public ResponseEntity signIn(
-            @RequestParam String username,
+            @RequestParam String userId,
             @RequestParam String password,
-            HttpServletResponse res)  // 분리 검증 가능
-    {
-        System.out.println(username);
+            HttpServletResponse res) {
+        System.out.println(userId);
         System.out.println(password);
         // 1. username, pw 인증 확인
         //   1.1 username으로 login테이블에서 조회후 id, secret까지 조회
-        Optional<Login> login = repo.findByUsername(username);
+        Optional<Login> login = repo.findByUsername(userId);
         // username에 매칭이 되는 레코드가 없는 상태
         if(!login.isPresent()) {
             return ResponseEntity
                     .status(HttpStatus.FOUND)
                     .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5500/login.html?err=Unauthorized")
+                            .fromHttpUrl("http://localhost:5500/index.html?err=Unauthorized")
                             .build().toUri())
                     .build();
             // 401 Unauthorized
@@ -94,16 +118,14 @@ public class AuthController {
         }
 
         //   1.2 password+salt -> 해시 -> secret 일치여부 확인
-        //   1.3 일치하면 다음코드를 실행
-        //   1.4 일치하지 않으면 401 Unauthorized 반환 종료
+        //   401 Unauthorized 반환 종료
         boolean isVerified = hash.verifyHash(password, login.get().getSecret());
-//        System.out.println("verified: " + isVerified);
-
+        System.out.println("verified: " + isVerified);
         if(!isVerified) {
             return ResponseEntity
                     .status(HttpStatus.FOUND)
                     .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5500/login.html?err=Unauthorized")
+                            .fromHttpUrl("http://localhost:5500/index.html?err=Unauthorized")
                             .build().toUri())
                     .build();
 //            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -112,8 +134,8 @@ public class AuthController {
         Login l = login.get();
         // 2. profile 정보를 조회하여 인증키 생성(JWT)
         Optional<Profile> profile = profileRepo.findByLogin_Id(l.getId());
-        // 로그인정보와 프로필 정보가 제대로 연결 안됨.
-        if(!profile.isPresent()) {
+        // 로그인정보와 프로필 정보가 일치 하지 않으면 -> error: 409 conflict
+         if(!profile.isPresent()) {
             return ResponseEntity
                     .status(HttpStatus.FOUND)
                     .location(ServletUriComponentsBuilder
