@@ -50,6 +50,7 @@ public class AuthController {
             @RequestParam("year") Long year,
             @RequestParam("companyName") String companyName,
             @RequestParam("companyAddress") String companyAddress) {
+
         // jason 아닌 form 형식 데이터 받기
         SignupRequest createUser = SignupRequest.builder()
                 .userId(userId)
