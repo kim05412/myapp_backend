@@ -14,10 +14,6 @@ public class AuthConfiguration {
 
     @Bean
     public JwtUtil jwtUtil() { return new JwtUtil(); }
-    @Bean
-    public void multipartResolver() {
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
 
-    }
 }
 

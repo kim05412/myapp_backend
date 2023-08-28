@@ -43,54 +43,38 @@ public class AuthController {
     //회원가입 요청 처리
     @PostMapping(value = "/signup")
     public ResponseEntity signUp(
-            @RequestParam("file") MultipartFile imageFile,
+            @RequestParam("file") MultipartFile businessCard,
             @RequestParam("userId") String userId,
             @RequestParam("password") String password,
             @RequestParam("nickname") String nickname,
             @RequestParam("year") Long year,
             @RequestParam("companyName") String companyName,
             @RequestParam("companyAddress") String companyAddress) {
+        // jason 아닌 form 형식 데이터 받기
+        SignupRequest createUser = SignupRequest.builder()
+                .userId(userId)
+                .password(password)
+                .nickname(nickname)
+                .year(year)
+                .companyName(companyName)
+                .companyAddress(companyAddress)
+                .businessCard(businessCard)
+                .build();
 
-        if (!isValidUserData(userId, password, nickname, year, companyName, companyAddress, imageFile)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+// 1.Validation(입력값 검증): interceptor -> 인증 필요한 요청 중 검증 완료 후-> controller로 전달
+        // 2. Business Logic(DB데이터 처리):service->회원가입시, 로그인-프로필 객체 일관성(트랜잭션 처리)
+        long profileId = service.createIdentity(createUser);
+        System.out.println(createUser);
 
-        try {
-            byte[] imageBytes = imageFile.getBytes();
-            String encodedImage = Base64.getEncoder().encodeToString(imageBytes);
+        // 3. Response
+        // 201: created
+        return ResponseEntity.status(HttpStatus.CREATED).body(profileId);
 
-            SignupRequest signupRequest = createSignupRequest(userId, password, nickname, year, companyName, companyAddress, encodedImage);
-
-            long profileId = service.createIdentity(signupRequest);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(profileId);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
     }
 
-    private boolean isValidUserData(String userId, String password, String nickname, Long year, String companyName, String companyAddress, MultipartFile imageFile) {
-        return userId != null && !userId.isEmpty() &&
-                password != null && !password.isEmpty() &&
-                nickname != null && !nickname.isEmpty() &&
-                year != null &&
-                companyName != null && !companyName.isEmpty() &&
-                companyAddress != null && !companyAddress.isEmpty() &&
-                imageFile != null && !imageFile.isEmpty();
-    }
 
-    private SignupRequest createSignupRequest(String userId, String password, String nickname, Long year, String companyName, String companyAddress, String encodedImage) {
-        SignupRequest signupRequest = new SignupRequest();
-        signupRequest.setUserId(userId);
-        signupRequest.setPassword(password);
-        signupRequest.setNickname(nickname);
-        signupRequest.setYear(year);
-        signupRequest.setCompanyName(companyName);
-        signupRequest.setCompanyAddress(companyAddress);
-        signupRequest.setBusinessCard(encodedImage);
-        return signupRequest;
-    }
+
+
 
     //3. (브라우저) 쿠키를 생성(도메인에 맞게)
     @PostMapping(value = "/signin")
@@ -108,7 +92,7 @@ public class AuthController {
             return ResponseEntity
                     .status(HttpStatus.FOUND)
                     .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5500/index.html?err=Unauthorized")
+                            .fromHttpUrl("http://localhost:5502/index.html?err=Unauthorized")
                             .build().toUri())
                     .build();
             // 401 Unauthorized
@@ -125,7 +109,7 @@ public class AuthController {
             return ResponseEntity
                     .status(HttpStatus.FOUND)
                     .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5500/index.html?err=Unauthorized")
+                            .fromHttpUrl("http://localhost:5502/index.html?err=Unauthorized")
                             .build().toUri())
                     .build();
 //            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -139,7 +123,7 @@ public class AuthController {
             return ResponseEntity
                     .status(HttpStatus.FOUND)
                     .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5500?err=Conflict")
+                            .fromHttpUrl("http://localhost:5502?err=Conflict")
                             .build().toUri())
                     .build();
             // 409 conflict: 데이터 현재 상태가 안 맞음
@@ -164,7 +148,7 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.FOUND)
                 .location(ServletUriComponentsBuilder
-                        .fromHttpUrl("http://localhost:5500")
+                        .fromHttpUrl("http://localhost:5502")
                         .build().toUri())
                 .build();
     }
