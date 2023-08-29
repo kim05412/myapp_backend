@@ -89,70 +89,70 @@ public class AuthController {
             HttpServletResponse res) {
         System.out.println(userId);
         System.out.println(password);
-        // 1. username, pw 인증 확인
-        //   1.1 username으로 login테이블에서 조회후 id, secret까지 조회
-        Optional<Login> login = repo.findByUserId(userId);
-        // username에 매칭이 되는 레코드가 없는 상태
-        if (!login.isPresent()) {
+            // 1. username, pw 인증 확인
+            //   1.1 username으로 login테이블에서 조회후 id, secret까지 조회
+            Optional<Login> login = repo.findByUserId(userId);
+            // username에 매칭이 되는 레코드가 없는 상태
+            if (!login.isPresent()) {
 //            return ResponseEntity
 //                    .status(HttpStatus.FOUND)
 //                    .location(ServletUriComponentsBuilder
 //                            .fromHttpUrl("http://localhost:5500/index.html?err=Unauthorized")
 //                            .build().toUri())
 //                    .build();
-            // 401 Unauthorized
-            // 클라이언트에서 대충 뭉뜨그려서 [인증정보가 잘못되었습니다.]
-            // [사용자이름 또는 패스워드가 잘못되었습니다.]
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+                // 401 Unauthorized
+                // 클라이언트에서 대충 뭉뜨그려서 [인증정보가 잘못되었습니다.]
+                // [사용자이름 또는 패스워드가 잘못되었습니다.]
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
 
-        //   1.2 password+salt -> 해시 -> secret 일치여부 확인
-        //   401 Unauthorized 반환 종료
-        boolean isVerified = hash.verifyHash(password, login.get().getSecret());
-        System.out.println("verified: " + isVerified);
-        if (!isVerified) {
+            //   1.2 password+salt -> 해시 -> secret 일치여부 확인
+            //   401 Unauthorized 반환 종료
+            boolean isVerified = hash.verifyHash(password, login.get().getSecret());
+            System.out.println("verified: " + isVerified);
+            if (!isVerified) {
 //            return ResponseEntity
 //                    .status(HttpStatus.FOUND)
 //                    .location(ServletUriComponentsBuilder
 //                            .fromHttpUrl("http://localhost:5500/index.html?err=Unauthorized")
 //                            .build().toUri())
 //                    .build();
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        Login l = login.get();
-        // 2. profile 정보를 조회하여 인증키 생성(JWT)
-        Optional<Profile> profile = profileRepo.findByLogin_Id(l.getId());
-        // 로그인정보와 프로필 정보가 일치 하지 않으면 -> error: 409 conflict
-        if (!profile.isPresent()) {
-            return ResponseEntity
-                    .status(HttpStatus.FOUND)
-                    .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5500?err=Conflict")
-                            .build().toUri())
-                    .build();
-            // 409 conflict: 데이터 현재 상태가 안 맞음
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            Login l = login.get();
+            // 2. profile 정보를 조회하여 인증키 생성(JWT)
+            Optional<Profile> profile = profileRepo.findByLogin_Id(l.getId());
+            // 로그인정보와 프로필 정보가 일치 하지 않으면 -> error: 409 conflict
+            if (!profile.isPresent()) {
+                return ResponseEntity
+                        .status(HttpStatus.FOUND)
+                        .location(ServletUriComponentsBuilder
+                                .fromHttpUrl("http://localhost:5500?err=Conflict")
+                                .build().toUri())
+                        .build();
+                // 409 conflict: 데이터 현재 상태가 안 맞음
 //            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+            }
 
-        String token = jwt.createToken(
-                l.getId(), l.getUserId(),
-                profile.get().getNickname());
-        System.out.println(token);
+            String token = jwt.createToken(
+                    l.getId(), l.getUserId(),
+                    profile.get().getNickname());
+            System.out.println(token);
 
-        // 3. cookie와 헤더를 생성
-        Cookie cookie = new Cookie("token", token);
-        cookie.setPath("/");
-        cookie.setMaxAge((int) (jwt.TOKEN_TIMEOUT / 1000L)); // 만료시간
-        cookie.setDomain("localhost"); // 쿠키를 사용할 수 있 도메인
+            // 3. cookie와 헤더를 생성
+            Cookie cookie = new Cookie("token", token);
+            cookie.setPath("/");
+            cookie.setMaxAge((int) (jwt.TOKEN_TIMEOUT / 1000L)); // 만료시간
+            cookie.setDomain("localhost"); // 쿠키를 사용할 수 있 도메인
 
-        // 응답헤더에 쿠키 추가
-        res.addCookie(cookie);
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "로그인이 완료되었습니다.");
-        response.put("nickname", profile.get().getNickname()); // 닉네임 값 추가
+            // 응답헤더에 쿠키 추가
+            res.addCookie(cookie);
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "로그인이 완료되었습니다.");
+            response.put("nickname", profile.get().getNickname()); // 닉네임 값 추가
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
 //        return ResponseEntity.ok("Form submitted successfully");
 //        return ResponseEntity
 //                .status(HttpStatus.FOUND)
@@ -161,28 +161,14 @@ public class AuthController {
 //                        .build().toUri())
 //                .build();
     }
-
-    // 로그 아웃
-    @PostMapping(value = "/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
-        // 세션 초기화
-        HttpSession session = request.getSession(false); // 기존 세션이 없을 경우에는 null을 반환
-        if (session != null) {
-            // 세션 무효화 (로그아웃 처리)
-            session.invalidate();
-
-            System.out.println("로그인 세션 무효화 됨");
-            // 웹 첫페이지로 리다이렉트
-            return ResponseEntity
-                    .status(HttpStatus.FOUND)
-                    .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5500")
-                            .build().toUri())
-                    .build();
-
-        }
-        else {
-            return ResponseEntity.status(400).body("세션이 없습니다.");
-        }
+   @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout(HttpServletRequest request) {
+        // 클라이언트에서 전달받은 토큰을 무효화하거나 블랙리스트에 추가하는 작업 수행
+        // 로그아웃 성공 응답 반환
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "로그아웃 되었습니다.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-}
+    }
+
