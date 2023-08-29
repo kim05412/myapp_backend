@@ -7,8 +7,8 @@ import java.util.Optional;
 @Repository
 public interface LoginRepository  extends JpaRepository<Login, Long> {
     // 1건이거나 없거나
-    // Optional.isPresent()
+//     Optional.isPresent()
     Optional<Login> findById(long id);
 
-    Optional<Login> findByUsername(String username);
+    Optional<Login> findByUserId(String userId);
 }
