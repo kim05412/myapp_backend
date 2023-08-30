@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
+
 
 @Data
 @Builder
@@ -18,6 +18,6 @@ public class SignupRequest {
         private Long year;
         private String companyName;
         private String companyAddress;
-        private MultipartFile businessCard;
+        private String file;
 
 }

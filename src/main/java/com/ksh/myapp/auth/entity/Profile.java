@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data //-> service에서 저장된 정보 불러오기
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,10 +18,13 @@ public class Profile {
     private long id;
 
     @Column(nullable = false)
+    private String userId;
+    private String password;
     private String nickname;
-    private Long birthyear;
-    private String company;
-    private String address;
+    private Long year;
+    private String companyName;
+    private String companyAddress;
+    private String file;
 
     @OneToOne
     private Login login;

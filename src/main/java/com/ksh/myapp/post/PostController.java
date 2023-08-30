@@ -1,5 +1,7 @@
 package com.ksh.myapp.post;
 
+import com.ksh.myapp.auth.Auth;
+import com.ksh.myapp.auth.AuthProfile;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -8,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.*;
 
@@ -38,38 +41,97 @@ public class PostController {
 
         Sort sort = Sort.by("no").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return repo.findByTypeContains(query, pageRequest);
+        return repo.findBySelectedMenuTypesContains(query, pageRequest);
     }
 //추가
+    @Auth
     @PostMapping
-    public ResponseEntity<Map<String, Object>> addPost(@RequestBody Post post) {
-        System.out.println(post);
-        // 필수 정보 입력 검증
-        if (post.getType() == null || post.getTitle().isEmpty() ||post.getTitle() == null || post.getAddress().isEmpty() || post.getAddress() == null || post.getAddress().isEmpty()||post.getReview() == null) {
-            Map<String,Object> res = new HashMap<>();
-            res.put("message", "잘못된 정보 입력됨");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<Map<String, Object>> addPost(@RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
+        String[] selectedMenuTypes = post.getSelectedMenuTypes();
+        String[] loadedFiles = post.getLoadedFiles();
+        String title = post.getTitle();
+        String menu = post.getMenu();
+        String address = post.getAddress();
+        String review = post.getReview();
 
-        }
 
-//      post.setAddress(authProfile.getAddress()); 회사명 또는 회사 주소 자동 표시
-//      post.setYear(authProfile.getYear()); -> 사용자들에게는 안보이고 연령대 통계에서만 사용
-//        post.set(authProfile.getNickname());
-        post.setCreatedTime(new Date().getTime());
-        // 좋아요 수 표시
-        //좋아요 기능 추가
-
-        Post savedPost = repo.save(post);
-        //생성된 객체가 존재하면 null값이 아닐 때
-        if (savedPost != null) {
+        // 첫 번째 파일 업로드 여부 확인
+        if (loadedFiles == null || loadedFiles.length < 1 || loadedFiles[0].isEmpty()) {
             Map<String, Object> res = new HashMap<>();
-            res.put("data", savedPost);
-            res.put("message", "created");
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(res);
+            res.put("message", "첫 번째 이미지 파일은 필수로 업로드해야 합니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
         }
-        return ResponseEntity.ok().build(); // 이렇게하면 그냥 생성되고 끝!
+        // 필수 정보 입력 검증
+        if (selectedMenuTypes == null || selectedMenuTypes.length == 0 ||
+                title == null || title.isEmpty() ||
+                menu == null || menu.isEmpty() ||
+                address == null || address.isEmpty() ||
+                review == null || review.isEmpty()) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("message", "잘못된 정보 입력됨");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+        }
 
+        Post savedPost = new Post(); // 여기서는 가정한 클래스명
+        savedPost.setSelectedMenuTypes(selectedMenuTypes);
+        savedPost.setLoadedFiles(loadedFiles);
+        savedPost.setTitle(title);
+        savedPost.setMenu(menu);
+        savedPost.setAddress(address);
+        savedPost.setReview(review);
+        savedPost.setCreatedTime(new Date().getTime());
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("data", savedPost);
+        res.put("message", "created");
+        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        // 좋아요 기능 추가
+
+// formData 형식
+//    public ResponseEntity<Map<String, Object>> addPost(
+//            @RequestParam(value = "selectedMenuTypes[]") String[] selectedMenuTypes,
+//            @RequestParam(value = "loadedFiles[]") String[] loadedFiles,
+//            @RequestParam("title") String title,
+//            @RequestParam("menu") String menu,
+//            @RequestParam("address") String address,
+//            @RequestParam("review") String review
+//    )  {
+//        System.out.println(selectedMenuTypes);
+//        System.out.println(loadedFiles);
+//
+//        // 첫 번째 파일 업로드 여부 확인
+//        if (loadedFiles.length < 1 || loadedFiles[0].isEmpty()) {
+//            Map<String, Object> res = new HashMap<>();
+//            res.put("message", "첫 번째 이미지 파일은 필수로 업로드해야 합니다.");
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+//        }
+//        // 필수 정보 입력 검증
+//        if (selectedMenuTypes == null || selectedMenuTypes.length == 0 ||
+//                title == null || title.isEmpty() ||
+//                menu == null || menu.isEmpty() ||
+//                address == null || address.isEmpty() ||
+//                review == null || review.isEmpty()) {
+//            Map<String, Object> res = new HashMap<>();
+//            res.put("message", "잘못된 정보 입력됨");
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+//        }
+//        // 선택한 메뉴 타입 리스트로 변환
+//        List<String> selectedMenuTypeList = Arrays.asList(selectedMenuTypes);
+//        List<String> loadedFiles = Arrays.asList(selectedMenuTypes);
+//
+//        Post savedPost = new Post(); // 여기서는 가정한 클래스명
+//        savedPost.setTitle(title);
+//        savedPost.setMenu(menu);
+//        savedPost.setAddress(address);
+//        savedPost.setReview(review);
+//        savedPost.setCreatedTime(new Date().getTime());
+//
+//        Map<String, Object> res = new HashMap<>();
+//        res.put("data", savedPost);
+//        res.put("message", "created");
+//        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+//        //좋아요 기능 추가
+        }
     }
 
 
@@ -83,4 +145,4 @@ public class PostController {
     // 포스트 DB에 추가
 //    @Auth
 //    @PostMapping("/{no}")
-}
+

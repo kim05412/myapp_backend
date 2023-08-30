@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.HashMap;
@@ -45,7 +44,7 @@ public class AuthController {
     //회원가입 요청 처리
     @PostMapping(value = "/signup")
     public ResponseEntity signUp(
-            @RequestParam("file") MultipartFile businessCard,
+            @RequestParam("file") String file,
             @RequestParam("userId") String userId,
             @RequestParam("password") String password,
             @RequestParam("nickname") String nickname,
@@ -61,7 +60,7 @@ public class AuthController {
                 .year(year)
                 .companyName(companyName)
                 .companyAddress(companyAddress)
-                .businessCard(businessCard)
+                .file(file)
                 .build();
 
 // 1.Validation(입력값 검증): interceptor -> 인증 필요한 요청 중 검증 완료 후-> controller로 전달
