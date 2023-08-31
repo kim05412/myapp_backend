@@ -47,8 +47,9 @@ public class AuthController {
     public ResponseEntity signUp(@RequestBody SignupRequest req) {
         //새로운 profile정보 생성하고 생성하고 할당-> 로그인시 사용
         long profileId = service.createIdentity(req);
+        Profile profileResponse = new Profile();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(profileId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(profileResponse);
     }
 
     //3. (브라우저) 쿠키를 생성(도메인에 맞게)
@@ -64,16 +65,11 @@ public class AuthController {
         Optional<Login> login = repo.findByUserId(userId);
         // userId에 매칭이 되는 레코드가 없는 상태
         if(!login.isPresent()) {
-            return ResponseEntity
-                    .status(HttpStatus.FOUND)
-                    .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5502/login.html?err=Unauthorized")
-                            .build().toUri())
-                    .build();
-            // 401 Unauthorized
-            // 클라이언트에서 대충 뭉뜨그려서 [인증정보가 잘못되었습니다.]
-            // [사용자이름 또는 패스워드가 잘못되었습니다.]
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+//             401 Unauthorized
+//             클라이언트에서 대충 뭉뜨그려서 [인증정보가 잘못되었습니다.]
+//             [사용자이름 또는 패스워드가 잘못되었습니다.]
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         //   1.2 password+salt -> 해시 -> secret 일치여부 확인
@@ -83,13 +79,13 @@ public class AuthController {
 //        System.out.println("verified: " + isVerified);
 
         if(!isVerified) {
-            return ResponseEntity
-                    .status(HttpStatus.FOUND)
-                    .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5502/login.html?err=Unauthorized")
-                            .build().toUri())
-                    .build();
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//            return ResponseEntity
+//                    .status(HttpStatus.FOUND)
+//                    .location(ServletUriComponentsBuilder
+//                            .fromHttpUrl("http://localhost:5502/login.html?err=Unauthorized")
+//                            .build().toUri())
+//                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         Login l = login.get();
@@ -97,14 +93,14 @@ public class AuthController {
         Optional<Profile> profile = profileRepo.findByLogin_Id(l.getId());
         // 로그인정보와 프로필 정보가 제대로 연결 안됨.
         if(!profile.isPresent()) {
-            return ResponseEntity
-                    .status(HttpStatus.FOUND)
-                    .location(ServletUriComponentsBuilder
-                            .fromHttpUrl("http://localhost:5502?err=Conflict")
-                            .build().toUri())
-                    .build();
+//            return ResponseEntity
+//                    .status(HttpStatus.FOUND)
+//                    .location(ServletUriComponentsBuilder
+//                            .fromHttpUrl("http://localhost:5502?err=Conflict")
+//                            .build().toUri())
+//                    .build();
             // 409 conflict: 데이터 현재 상태가 안 맞음
-//            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
         String token = jwt.createToken(
@@ -122,6 +118,21 @@ public class AuthController {
         res.addCookie(cookie);
 
         // 웹 첫페이지로 리다이렉트
+//        return ResponseEntity
+//                .status(HttpStatus.FOUND)
+//                .location(ServletUriComponentsBuilder
+//                        .fromHttpUrl("http://localhost:5502")
+//                        .build().toUri())
+//                .build();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "로그인이 완료되었습니다.");
+        response.put("token", token);
+        response.put("nickname", profile.get().getNickname()); // 닉네임 값 추가
+
+//        return ResponseEntity.status(HttpStatus.OK).body(response);
+
         return ResponseEntity
                 .status(HttpStatus.FOUND)
                 .location(ServletUriComponentsBuilder
