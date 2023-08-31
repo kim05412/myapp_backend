@@ -19,5 +19,4 @@ public class SignupRequest {
         private String companyName;
         private String companyAddress;
         private String file;
-
 }

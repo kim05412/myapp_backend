@@ -22,7 +22,7 @@ public class Login {
     @Column(length = 500)
     private String secret;
 
-    // 관계테이블에 키값만 저장
+    // 로그인시 회원 가입시에 만들어진 id ->관계테이블에 키값만 저장
     private long profileId;
 
 

@@ -18,8 +18,6 @@ public class Profile {
     private long id;
 
     @Column(nullable = false)
-    private String userId;
-    private String password;
     private String nickname;
     private Long year;
     private String companyName;

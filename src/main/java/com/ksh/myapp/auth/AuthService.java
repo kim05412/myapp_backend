@@ -40,7 +40,11 @@ public class AuthService {
         // 2. new profile 정보를 insert(login_id포함)하고 레코드의 id값을 가져옴;
         Profile toSaveProfile = // 새 프로필을 위한 객체 생성
                 Profile.builder() //빌더 패턴 사용
-                        .nickname(req.getNickname()) //사용자가 입력한 닉네임 가져와서 저장
+                        .nickname(req.getNickname())//사용자가 입력한 닉네임 가져와서 저장
+                        .year(req.getYear())
+                        .companyName(req.getCompanyName())
+                        .companyAddress(req.getCompanyAddress())
+                        .file(req.getFile())
                         .login(savedLogin) // 연결할 로그인 정보(이전단계에서 저장된 로그인 정보-일관성 유지) 가져와서 저장
                         .build(); //생성한거 반환
         long profileId = profileRepo.save(toSaveProfile).getId(); // 프로필 정보를 db에 저장->프로필 정보 중 id값만 추출-> 할당
