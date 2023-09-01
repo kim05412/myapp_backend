@@ -17,7 +17,7 @@ public class PostActivity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    private String content;
+    private String review;
 
     @ManyToOne // 사용자가 여러 포스트 작성
     private Post post;

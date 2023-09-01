@@ -17,7 +17,7 @@ public class Profile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
+//    @Column(unique=true)
     private String nickname;
     private Long year;
     private String companyName;

@@ -47,9 +47,10 @@ public class AuthController {
     public ResponseEntity signUp(@RequestBody SignupRequest req) {
         //새로운 profile정보 생성하고 생성하고 할당-> 로그인시 사용
         long profileId = service.createIdentity(req);
-        Profile profileResponse = new Profile();
+        System.out.println(profileId);
+//        Profile profileResponse = new Profile();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(profileResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(profileId);
     }
 
     //3. (브라우저) 쿠키를 생성(도메인에 맞게)
@@ -85,6 +86,8 @@ public class AuthController {
 //                            .fromHttpUrl("http://localhost:5502/login.html?err=Unauthorized")
 //                            .build().toUri())
 //                    .build();
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "입력정보를 다시 확인하세요.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -99,7 +102,10 @@ public class AuthController {
 //                            .fromHttpUrl("http://localhost:5502?err=Conflict")
 //                            .build().toUri())
 //                    .build();
+
             // 409 conflict: 데이터 현재 상태가 안 맞음
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "해당 사용자 정보가 없습니다.");
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 

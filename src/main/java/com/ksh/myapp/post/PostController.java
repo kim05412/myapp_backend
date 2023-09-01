@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
 import java.util.*;
@@ -59,6 +60,7 @@ public class PostController {
         if (loadedFiles == null || loadedFiles.length < 1 || loadedFiles[0].isEmpty()) {
             Map<String, Object> res = new HashMap<>();
             res.put("message", "첫 번째 이미지 파일은 필수로 업로드해야 합니다.");
+            System.out.println("첫 번째 이미지 파일은 필수로 업로드");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
         }
         // 필수 정보 입력 검증
@@ -69,6 +71,7 @@ public class PostController {
                 review == null || review.isEmpty()) {
             Map<String, Object> res = new HashMap<>();
             res.put("message", "잘못된 정보 입력됨");
+            System.out.println("잘못된 정보 입력됨");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
         }
 
@@ -84,7 +87,13 @@ public class PostController {
         Map<String, Object> res = new HashMap<>();
         res.put("data", savedPost);
         res.put("message", "created");
-        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(ServletUriComponentsBuilder
+                        .fromHttpUrl("http://localhost:5502")
+                        .build().toUri())
+                .build();
         // 좋아요 기능 추가
 
 // formData 형식
