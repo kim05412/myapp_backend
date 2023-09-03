@@ -44,13 +44,28 @@ public class AuthController {
     //회원가입 요청 처리
     //회원가입 요청 처리
     @PostMapping(value = "/signup")
-    public ResponseEntity signUp(@RequestBody SignupRequest req) {
-        //새로운 profile정보 생성하고 생성하고 할당-> 로그인시 사용
-        long profileId = service.createIdentity(req);
-        System.out.println(profileId);
-//        Profile profileResponse = new Profile();
+    public ResponseEntity<Map<String,Object>> signUp(@RequestBody SignupRequest req) {
+        Optional<Login> findByNickname = repo.findByNickname(req.getNickname());
+        Optional<Login> findUserId = repo.findByUserId(req.getUserId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(profileId);
+        if(findByNickname.isPresent()) {
+            Map<String,Object> res = new HashMap<>();
+            res.put("message", "이미 존재하는 별명입니다.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
+        }
+        if(findUserId.isPresent()) {
+            Map<String,Object> res = new HashMap<>();
+            res.put("message", "이미 존재하는 아이디입니다.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
+        }
+        service.createIdentity(req);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "회원가입이 완료되었습니다.");
+        response.put("nickname", req.getNickname()); // 닉네임 값 추가
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     //3. (브라우저) 쿠키를 생성(도메인에 맞게)
@@ -73,22 +88,19 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        //   1.2 password+salt -> 해시 -> secret 일치여부 확인
-        //   1.3 일치하면 다음코드를 실행
-        //   1.4 일치하지 않으면 401 Unauthorized 반환 종료
         boolean isVerified = hash.verifyHash(password, login.get().getSecret());
 //        System.out.println("verified: " + isVerified);
 
         if(!isVerified) {
-//            return ResponseEntity
-//                    .status(HttpStatus.FOUND)
-//                    .location(ServletUriComponentsBuilder
-//                            .fromHttpUrl("http://localhost:5502/login.html?err=Unauthorized")
-//                            .build().toUri())
-//                    .build();
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "입력정보를 다시 확인하세요.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity
+                    .status(HttpStatus.FOUND)
+                    .location(ServletUriComponentsBuilder
+                            .fromHttpUrl("http://localhost:5502/login.html?err=Unauthorized")
+                            .build().toUri())
+                    .build();
+//            Map<String, Object> response = new HashMap<>();
+//            response.put("message", "입력정보를 다시 확인하세요.");
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         Login l = login.get();
@@ -136,15 +148,14 @@ public class AuthController {
         response.put("message", "로그인이 완료되었습니다.");
         response.put("token", token);
         response.put("nickname", profile.get().getNickname()); // 닉네임 값 추가
+        return ResponseEntity.status(HttpStatus.OK).body(response);
 
-//        return ResponseEntity.status(HttpStatus.OK).body(response);
-
-        return ResponseEntity
-                .status(HttpStatus.FOUND)
-                .location(ServletUriComponentsBuilder
-                        .fromHttpUrl("http://localhost:5502")
-                        .build().toUri())
-                .build();
+//        return ResponseEntity
+//                .status(HttpStatus.FOUND)
+//                .location(ServletUriComponentsBuilder
+//                        .fromHttpUrl("http://localhost:5502")
+//                        .build().toUri())
+//                .build();
     }
 
    @PostMapping("/logout")

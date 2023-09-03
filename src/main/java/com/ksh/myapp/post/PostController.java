@@ -25,6 +25,12 @@ public class PostController {
     @Autowired // 자동 초기화
     private PostRepository postRepository; // 멤버 변수
 
+    @GetMapping
+    public ResponseEntity<List<Post>> getAllPosts() {
+        List<Post> posts = postRepository.findAll();
+        return new ResponseEntity<>(posts, HttpStatus.OK);
+    }
+
     // 기본: 최신순 조회
     @GetMapping(value = "/paging")
     public Page<Post> getPostsPaging(@RequestParam int page, @RequestParam int size){
@@ -38,33 +44,35 @@ public class PostController {
 
     @GetMapping(value = "/paging/search")
     public Page<Post> getPostsPagingSearch(@RequestParam int page, @RequestParam int size, @RequestParam String query){
+        List<String> selectedOptions = Arrays.asList(query.split(","));
         System.out.println(query + "1");
 
         Sort sort = Sort.by("no").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return repo.findBySelectedMenuTypesContains(query, pageRequest);
+        return repo.findBySelectedOptionsContains(selectedOptions, pageRequest);
     }
 //추가
     @Auth
     @PostMapping
     public ResponseEntity<Map<String, Object>> addPost(@RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
-        String[] selectedMenuTypes = post.getSelectedMenuTypes();
-        String[] loadedFiles = post.getLoadedFiles();
+        List<String> selectedOptions = post.getSelectedOptions();
+        List<String> loadedFiles = post.getLoadedFiles();
         String title = post.getTitle();
         String menu = post.getMenu();
         String address = post.getAddress();
         String review = post.getReview();
-
+        System.out.println(selectedOptions);
+        System.out.println(menu);
 
         // 첫 번째 파일 업로드 여부 확인
-        if (loadedFiles == null || loadedFiles.length < 1 || loadedFiles[0].isEmpty()) {
+        if (loadedFiles == null || loadedFiles.size() < 1 || loadedFiles.get(0).isEmpty()) {
             Map<String, Object> res = new HashMap<>();
             res.put("message", "첫 번째 이미지 파일은 필수로 업로드해야 합니다.");
             System.out.println("첫 번째 이미지 파일은 필수로 업로드");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
         }
         // 필수 정보 입력 검증
-        if (selectedMenuTypes == null || selectedMenuTypes.length == 0 ||
+        if (selectedOptions == null || selectedOptions.isEmpty() ||
                 title == null || title.isEmpty() ||
                 menu == null || menu.isEmpty() ||
                 address == null || address.isEmpty() ||
@@ -75,14 +83,16 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
         }
 
-        Post savedPost = new Post(); // 여기서는 가정한 클래스명
-        savedPost.setSelectedMenuTypes(selectedMenuTypes);
+        // Post 객체 생성 및 데이터 설정
+        Post savedPost = new Post();
+        savedPost.setSelectedOptions(selectedOptions);
         savedPost.setLoadedFiles(loadedFiles);
         savedPost.setTitle(title);
         savedPost.setMenu(menu);
         savedPost.setAddress(address);
         savedPost.setReview(review);
         savedPost.setCreatedTime(new Date().getTime());
+        System.out.println(savedPost);
 
         Map<String, Object> res = new HashMap<>();
         res.put("data", savedPost);
@@ -94,18 +104,19 @@ public class PostController {
                         .fromHttpUrl("http://localhost:5502")
                         .build().toUri())
                 .build();
+
         // 좋아요 기능 추가
 
 // formData 형식
 //    public ResponseEntity<Map<String, Object>> addPost(
-//            @RequestParam(value = "selectedMenuTypes[]") String[] selectedMenuTypes,
+//            @RequestParam(value = "SelectedOptions[]") String[] SelectedOptions,
 //            @RequestParam(value = "loadedFiles[]") String[] loadedFiles,
 //            @RequestParam("title") String title,
 //            @RequestParam("menu") String menu,
 //            @RequestParam("address") String address,
 //            @RequestParam("review") String review
 //    )  {
-//        System.out.println(selectedMenuTypes);
+//        System.out.println(SelectedOptions);
 //        System.out.println(loadedFiles);
 //
 //        // 첫 번째 파일 업로드 여부 확인
@@ -115,7 +126,7 @@ public class PostController {
 //            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
 //        }
 //        // 필수 정보 입력 검증
-//        if (selectedMenuTypes == null || selectedMenuTypes.length == 0 ||
+//        if (SelectedOptions == null || SelectedOptions.length == 0 ||
 //                title == null || title.isEmpty() ||
 //                menu == null || menu.isEmpty() ||
 //                address == null || address.isEmpty() ||
@@ -125,8 +136,8 @@ public class PostController {
 //            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
 //        }
 //        // 선택한 메뉴 타입 리스트로 변환
-//        List<String> selectedMenuTypeList = Arrays.asList(selectedMenuTypes);
-//        List<String> loadedFiles = Arrays.asList(selectedMenuTypes);
+//        List<String> selectedMenuTypeList = Arrays.asList(SelectedOptions);
+//        List<String> loadedFiles = Arrays.asList(SelectedOptions);
 //
 //        Post savedPost = new Post(); // 여기서는 가정한 클래스명
 //        savedPost.setTitle(title);

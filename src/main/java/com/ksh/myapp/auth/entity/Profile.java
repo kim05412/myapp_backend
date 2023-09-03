@@ -17,8 +17,12 @@ public class Profile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-//    @Column(unique=true)
+    @Column(unique = true)
+    private String userId;
+
+    @Column(unique = true)
     private String nickname;
+
     private Long year;
     private String companyName;
     private String companyAddress;

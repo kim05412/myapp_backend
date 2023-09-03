@@ -49,6 +49,7 @@ public class AuthService {
                         .build(); //생성한거 반환
         long profileId = profileRepo.save(toSaveProfile).getId(); // 프로필 정보를 db에 저장->프로필 정보 중 id값만 추출-> 할당
 
+
         // 3. 로그인 정보에는 profile_id값만 저장
         savedLogin.setProfileId(profileId); // 이전의 생성된 login정보 객체에 profile의 id 추가하고 저장 => 연관성 발생=>로그인시 프로필 참조 가능
         repo.save(savedLogin); // 변경 login정보를 da에 다시 저장
