@@ -1,168 +1,168 @@
 package com.ksh.myapp.post;
 
+
 import com.ksh.myapp.auth.Auth;
 import com.ksh.myapp.auth.AuthProfile;
-import lombok.Data;
+import com.ksh.myapp.auth.entity.LoginRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@Data
+
 @RestController
-@RequestMapping(value = "/posts")
+@RequestMapping(value = "posts")
 public class PostController {
     @Autowired
     PostRepository repo;
-
-    @Autowired // 자동 초기화
-    private PostRepository postRepository; // 멤버 변수
+    @Autowired
+    LoginRepository logRepo;
+//    @Autowired
+//    PostCommentRepository commentRepo;
+//    @Autowired
+//    PostService service;
 
     @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
-        List<Post> posts = postRepository.findAll();
-        return new ResponseEntity<>(posts, HttpStatus.OK);
-    }
+    public List<Post> getPostList() {
 
-    // 기본: 최신순 조회
+        // repository query creation을 이용한 방법
+        List<Post> list = repo.findPostSortByNo();
+        System.out.println("1"+list);
+        return list;
+
+    }
     @GetMapping(value = "/paging")
-    public Page<Post> getPostsPaging(@RequestParam int page, @RequestParam int size){
-        System.out.println(page);
-        System.out.println(size);
+    public Page<Post> getPostsPaging(@RequestParam int page, @RequestParam int size) {
+        System.out.println(page + "1");
+        System.out.println(size + "1");
 
         Sort sort = Sort.by("no").descending();
         PageRequest pageRequest = PageRequest.of(page, size, sort);
         return repo.findAll(pageRequest);
     }
 
-    @GetMapping(value = "/paging/search")
-    public Page<Post> getPostsPagingSearch(@RequestParam int page, @RequestParam int size, @RequestParam String query){
-        List<String> selectedOptions = Arrays.asList(query.split(","));
-        System.out.println(query + "1");
-
-        Sort sort = Sort.by("no").descending();
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return repo.findBySelectedOptionsContains(selectedOptions, pageRequest);
-    }
-//추가
     @Auth
     @PostMapping
-    public ResponseEntity<Map<String, Object>> addPost(@RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
-        List<String> selectedOptions = post.getSelectedOptions();
-        List<String> loadedFiles = post.getLoadedFiles();
-        String title = post.getTitle();
-        String menu = post.getMenu();
-        String address = post.getAddress();
-        String review = post.getReview();
-        System.out.println(selectedOptions);
-        System.out.println(menu);
+    public ResponseEntity<Map<String, Object>> addPost( @RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
 
-        // 첫 번째 파일 업로드 여부 확인
-        if (loadedFiles == null || loadedFiles.size() < 1 || loadedFiles.get(0).isEmpty()) {
-            Map<String, Object> res = new HashMap<>();
-            res.put("message", "첫 번째 이미지 파일은 필수로 업로드해야 합니다.");
-            System.out.println("첫 번째 이미지 파일은 필수로 업로드");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
-        }
-        // 필수 정보 입력 검증
-        if (selectedOptions == null || selectedOptions.isEmpty() ||
-                title == null || title.isEmpty() ||
-                menu == null || menu.isEmpty() ||
-                address == null || address.isEmpty() ||
-                review == null || review.isEmpty()) {
-            Map<String, Object> res = new HashMap<>();
-            res.put("message", "잘못된 정보 입력됨");
-            System.out.println("잘못된 정보 입력됨");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
-        }
+        //1. 입력값 자동 검증
+        // -> 입력값 오류(빈 값)가 있으면 400 에러 띄움
+        //제목과 컨텐트 내용이 비어있으면 내보내는 400번 코드
+        System.out.println(authProfile);
+        System.out.println("포스트 작성");
 
-        // Post 객체 생성 및 데이터 설정
-        Post savedPost = new Post();
-        savedPost.setSelectedOptions(selectedOptions);
-        savedPost.setLoadedFiles(loadedFiles);
-        savedPost.setTitle(title);
-        savedPost.setMenu(menu);
-        savedPost.setAddress(address);
-        savedPost.setReview(review);
-        savedPost.setCreatedTime(new Date().getTime());
+        if (post.getTitle() == null || post.getReview() == null || post.getTitle().isEmpty() || post.getReview().isEmpty()) {
+//
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        //3. 시간값, 게시자 이름 설정(set필드명(..))
+
+        post.setNickname(authProfile.getNickname());
+        post.setCompanyName(authProfile.getCompanyName());
+        post.setCompanyAddress(authProfile.getCompanyAddress());
+        post.setCreatedTime(new Date().getTime());
+
+        post.setCreatorId(authProfile.getId());
+        //생성된 객체를 반환
+        Post savedPost = repo.save(post);
         System.out.println(savedPost);
 
-        Map<String, Object> res = new HashMap<>();
-        res.put("data", savedPost);
-        res.put("message", "created");
-//        return ResponseEntity.status(HttpStatus.CREATED).body(res);
-        return ResponseEntity
-                .status(HttpStatus.FOUND)
-                .location(ServletUriComponentsBuilder
-                        .fromHttpUrl("http://localhost:5502")
-                        .build().toUri())
-                .build();
 
-        // 좋아요 기능 추가
+        //생성된 객체가 존재하면 null값이 아닐 때
+        if (savedPost != null) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("data", savedPost);
+            res.put("message", "created");
 
-// formData 형식
-//    public ResponseEntity<Map<String, Object>> addPost(
-//            @RequestParam(value = "SelectedOptions[]") String[] SelectedOptions,
-//            @RequestParam(value = "loadedFiles[]") String[] loadedFiles,
-//            @RequestParam("title") String title,
-//            @RequestParam("menu") String menu,
-//            @RequestParam("address") String address,
-//            @RequestParam("review") String review
-//    )  {
-//        System.out.println(SelectedOptions);
-//        System.out.println(loadedFiles);
-//
-//        // 첫 번째 파일 업로드 여부 확인
-//        if (loadedFiles.length < 1 || loadedFiles[0].isEmpty()) {
-//            Map<String, Object> res = new HashMap<>();
-//            res.put("message", "첫 번째 이미지 파일은 필수로 업로드해야 합니다.");
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
-//        }
-//        // 필수 정보 입력 검증
-//        if (SelectedOptions == null || SelectedOptions.length == 0 ||
-//                title == null || title.isEmpty() ||
-//                menu == null || menu.isEmpty() ||
-//                address == null || address.isEmpty() ||
-//                review == null || review.isEmpty()) {
-//            Map<String, Object> res = new HashMap<>();
-//            res.put("message", "잘못된 정보 입력됨");
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
-//        }
-//        // 선택한 메뉴 타입 리스트로 변환
-//        List<String> selectedMenuTypeList = Arrays.asList(SelectedOptions);
-//        List<String> loadedFiles = Arrays.asList(SelectedOptions);
-//
-//        Post savedPost = new Post(); // 여기서는 가정한 클래스명
-//        savedPost.setTitle(title);
-//        savedPost.setMenu(menu);
-//        savedPost.setAddress(address);
-//        savedPost.setReview(review);
-//        savedPost.setCreatedTime(new Date().getTime());
-//
-//        Map<String, Object> res = new HashMap<>();
-//        res.put("data", savedPost);
-//        res.put("message", "created");
-//        return ResponseEntity.status(HttpStatus.CREATED).body(res);
-//        //좋아요 기능 추가
+            return ResponseEntity.status(HttpStatus.CREATED).body(res);
         }
+
+
+        return ResponseEntity.ok().build(); // 이렇게하면 그냥 생성되고 끝!
     }
 
+    @Auth
+    @DeleteMapping(value = "/{no}")
+    public ResponseEntity removePost(@PathVariable long no, @RequestAttribute AuthProfile authProfile) {
+        System.out.println(no);
 
-//postRepository->엔티티를 데이터베이스에서 조회=>반환.
-//@GetMapping
-//public List<Post> findAll() {
-//    return postRepository.findAll();
-//}
+        Optional<Post> post = repo.findPostByNo(no);
 
 
-    // 포스트 DB에 추가
+        if (!post.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        if (post.get().getNo() != no) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        repo.deleteById(no);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Auth
+    @PutMapping(value = "/{no}")
+    public ResponseEntity modifyPost(@PathVariable long no, @RequestBody PostModifyRequest post, @RequestAttribute AuthProfile authProfile) {
+        System.out.println(no);
+        System.out.println(post);
+
+        // 1. 키값으로 조회해옴
+        Optional<Post> findedPost = repo.findById(authProfile.getId());
+        // 2. 해당 레코드가 있는지 확인
+        if (!findedPost.isPresent()) {
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        //수정해서 저장할 포스트
+        Post toModifyPost = findedPost.get();
+
+        if (post.getTitle() != null && !post.getTitle().isEmpty()) {
+            toModifyPost.setTitle(post.getTitle());
+        }
+        if (post.getReview() != null && !post.getReview().isEmpty()) {
+            toModifyPost.setReview(post.getReview());
+        }
+        //update
+        repo.save(toModifyPost);
+
+        //ok 처리
+        return ResponseEntity.ok().build();
+    }
 //    @Auth
-//    @PostMapping("/{no}")
+//    @PostMapping("/{no}/comments")
+//    public ResponseEntity addComments(
+//            @PathVariable long no,
+//            @RequestBody PostComment postComment,
+//            @RequestAttribute AuthProfile authProfile) {
+//
+//        Optional<Post> post = repo.findById(no);
+//        if(!post.isPresent()) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+//        }
+//
+//        // 커멘트 추가
+//        postComment.setPost(post.get());
+////        postComment.setOwnerId(authProfile.getId());
+////        postComment.setOwnerName(authProfile.getNickname());
+//
+//        // 커멘트 건수 증가 및 최근 커멘트 표시
+//        Post findedPost = post.get();
+//        findedPost.setLatestComment(postComment.getContent());
+//        findedPost.setCommentCnt(post.get().getCommentCnt() + 1);
+//
+//        // 트랜잭션 처리
+//        service.createComment(findedPost, postComment);
+//
+//        return ResponseEntity.status(HttpStatus.CREATED).build();
+//    }
 
+
+
+}

@@ -121,9 +121,9 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
-        String token = jwt.createToken(
+       String token = jwt.createToken(
                 l.getId(), l.getUserId(),
-                profile.get().getNickname());
+                profile.get().getNickname(),profile.get().getCompanyName(),profile.get().getCompanyAddress());
         System.out.println(token);
 
         // 3. cookie와 헤더를 생성한후 리다이렉트
@@ -147,7 +147,8 @@ public class AuthController {
         response.put("status", "success");
         response.put("message", "로그인이 완료되었습니다.");
         response.put("token", token);
-        response.put("nickname", profile.get().getNickname()); // 닉네임 값 추가
+//        response.put("nickname", profile.get().getNickname());// 닉네임 값 추가
+
         return ResponseEntity.status(HttpStatus.OK).body(response);
 
 //        return ResponseEntity
@@ -165,6 +166,7 @@ public class AuthController {
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
         response.put("message", "로그아웃 되었습니다.");
+       System.out.println(response);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
     }

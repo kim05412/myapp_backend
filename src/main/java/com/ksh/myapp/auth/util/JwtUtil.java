@@ -17,7 +17,7 @@ public class JwtUtil {
     public final long TOKEN_TIMEOUT = 1000 * 60 * 60 * 24 * 7;
 
     // JWT 토큰 생성
-    public String createToken(long id, String username, String nickname) {
+    public String createToken(long id, String userId, String nickname, String companyName, String companyAddress) {
         // 토큰 생성시간과 만료시간을 만듦
         Date now = new Date();
         // 만료시간: 2차인증 이런게 잘걸려있으면 큰문제는 안됨. 내컴퓨터를 다른 사람이 쓴다.
@@ -30,8 +30,10 @@ public class JwtUtil {
         return JWT.create()
                 // sub: 토큰 소유자
                 .withSubject(String.valueOf(id))
-                .withClaim("username", username)
+                .withClaim("userId", userId)
                 .withClaim("nickname", nickname)
+                .withClaim("companyName", companyName)
+                .withClaim("companyAddress", companyAddress)
                 .withIssuedAt(now)
                 .withExpiresAt(exp)
                 .sign(algorithm);
@@ -47,15 +49,23 @@ public class JwtUtil {
             // 토큰 검증 제대로 된 상황
             // 토큰 페이로드(데이터, subject/claim)를 조회
            Long id = Long.valueOf(decodedJWT.getSubject());
-//           String nickname = decodedJWT
-//                            .getClaim("nickname").asString();
-//           String username = decodedJWT
-//                            .getClaim("username").asString();
+           String nickname = decodedJWT
+                            .getClaim("nickname").asString();
+           String userId = decodedJWT
+                            .getClaim("userId").asString();
+            String companyName = decodedJWT
+                    .getClaim("companyName").asString();
+            String companyAddresse = decodedJWT
+                    .getClaim("companyAddress").asString();
+
+
 
             return AuthProfile.builder()
                    .id(id)
-//                   .username(username)
-//                   .nickname(nickname)
+                   .userId(userId)
+                   .nickname(nickname)
+                    .companyName(companyName)
+                    .companyAddress(companyAddresse)
                    .build();
 
         } catch (JWTVerificationException e) {

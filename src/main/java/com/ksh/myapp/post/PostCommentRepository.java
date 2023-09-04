@@ -4,5 +4,5 @@
 //import org.springframework.stereotype.Repository;
 //
 //@Repository
-//public interface PostActivityRepository extends JpaRepository<PostActivity, Long> {
+//public interface PostCommentRepository extends JpaRepository<PostComment, Long> {
 //}
