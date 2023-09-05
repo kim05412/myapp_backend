@@ -18,7 +18,7 @@ public class Login {
 
     @Column(unique = true)
     private String userId;
-
+//
     @Column(unique = true)
     private String nickname;
 

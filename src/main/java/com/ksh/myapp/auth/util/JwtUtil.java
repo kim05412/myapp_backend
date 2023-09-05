@@ -53,20 +53,20 @@ public class JwtUtil {
                             .getClaim("nickname").asString();
            String userId = decodedJWT
                             .getClaim("userId").asString();
-            String companyName = decodedJWT
+           String companyName = decodedJWT
                     .getClaim("companyName").asString();
-            String companyAddresse = decodedJWT
+           String companyAddress = decodedJWT
                     .getClaim("companyAddress").asString();
 
 
 
             return AuthProfile.builder()
-                   .id(id)
-                   .userId(userId)
-                   .nickname(nickname)
+                    .id(id)
+                    .userId(userId)
+                    .nickname(nickname)
                     .companyName(companyName)
-                    .companyAddress(companyAddresse)
-                   .build();
+                    .companyAddress(companyAddress)
+                    .build();
 
         } catch (JWTVerificationException e) {
             // 토큰 검증 오류 상황

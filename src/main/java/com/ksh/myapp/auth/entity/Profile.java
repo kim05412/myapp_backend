@@ -1,10 +1,14 @@
 package com.ksh.myapp.auth.entity;
 
+import com.ksh.myapp.post.Post;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Data //-> service에서 저장된 정보 불러오기
@@ -16,13 +20,12 @@ public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    @Column(unique = true)
-    private String userId;
-
+//
+//    @Column(unique = true)
+//    private String userId;
+//
     @Column(unique = true)
     private String nickname;
-
     private Long year;
     private String companyName;
     private String companyAddress;

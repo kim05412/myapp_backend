@@ -7,6 +7,7 @@ import com.ksh.myapp.auth.entity.ProfileRepository;
 import com.ksh.myapp.auth.request.SignupRequest;
 import com.ksh.myapp.auth.util.HashUtil;
 import com.ksh.myapp.auth.util.JwtUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,7 +21,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
+@Tag(name ="인증 관리 및 처리ㅣ API")
 @RestController //HTTP메서드(GET,POST,PUT,DELETE) -> 메소드의 반환값은 HTTP 응답 본문(Body)에 직접 작성:ason형식
 @RequestMapping("/auth") //내부의 모든 요청 핸들링 메서들의 URL 접두사
 public class AuthController {

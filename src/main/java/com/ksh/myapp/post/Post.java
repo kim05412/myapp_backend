@@ -1,7 +1,6 @@
 package com.ksh.myapp.post;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +21,7 @@ public class Post {
 //@NotBlank(message = "제목을 입력해주세요.")
     private String title;
     //컬럼크기 1024byte * 1024 = 1mb * 20 = 20mb
-//    @Column(length = 1024 * 1024 * 20) // MySQL에서는 longtext로 바뀜
+    @Column(length = 1024 * 1024 * 20) // MySQL에서는 longtext로 바뀜
 //    바뀜
     // 파일을 base64 data-url 문자열로 저장
 //    @NotBlank(message = "이미지을 입력해주세요.")
@@ -40,7 +39,6 @@ public class Post {
     @Column(nullable = false)
 //    @NotBlank(message = "주소를 입력해주세요.")
     private String address;
-    private long creatorId;
 
     private Long year;
     private String companyName;

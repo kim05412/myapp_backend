@@ -5,6 +5,9 @@ import com.ksh.myapp.auth.Auth;
 import com.ksh.myapp.auth.AuthProfile;
 import com.ksh.myapp.auth.entity.LoginRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,38 +19,39 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-
+@Tag(name="포스트 관리 및 처리 | API")
 @RestController
 @RequestMapping(value = "posts")
 public class PostController {
     @Autowired
     PostRepository repo;
     @Autowired
-    LoginRepository logRepo;
+    LoginRepository loginRepo;
 //    @Autowired
 //    PostCommentRepository commentRepo;
 //    @Autowired
 //    PostService service;
 
+    @Operation(summary = "포스트 목록 조회", security = { @SecurityRequirement(name = "bearer-key") })
     @GetMapping
     public List<Post> getPostList() {
 
         // repository query creation을 이용한 방법
         List<Post> list = repo.findPostSortByNo();
-        System.out.println("1"+list);
         return list;
 
     }
-    @GetMapping(value = "/paging")
-    public Page<Post> getPostsPaging(@RequestParam int page, @RequestParam int size) {
-        System.out.println(page + "1");
-        System.out.println(size + "1");
+//    @GetMapping(value = "/paging")
+//    public Page<Post> getPostsPaging(@RequestParam int page, @RequestParam int size) {
+//        System.out.println(page + "1");
+//        System.out.println(size + "1");
+//
+//        Sort sort = Sort.by("no").descending();
+//        PageRequest pageRequest = PageRequest.of(page, size, sort);
+//        return repo.findAll(pageRequest);
+//    }
 
-        Sort sort = Sort.by("no").descending();
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return repo.findAll(pageRequest);
-    }
-
+    @Operation(summary = "포스트 작성", security = { @SecurityRequirement(name = "bearer-key") })
     @Auth
     @PostMapping
     public ResponseEntity<Map<String, Object>> addPost( @RequestBody Post post, @RequestAttribute AuthProfile authProfile) {
@@ -69,10 +73,8 @@ public class PostController {
         post.setCompanyAddress(authProfile.getCompanyAddress());
         post.setCreatedTime(new Date().getTime());
 
-        post.setCreatorId(authProfile.getId());
         //생성된 객체를 반환
         Post savedPost = repo.save(post);
-        System.out.println(savedPost);
 
 
         //생성된 객체가 존재하면 null값이 아닐 때
@@ -88,53 +90,53 @@ public class PostController {
         return ResponseEntity.ok().build(); // 이렇게하면 그냥 생성되고 끝!
     }
 
-    @Auth
-    @DeleteMapping(value = "/{no}")
-    public ResponseEntity removePost(@PathVariable long no, @RequestAttribute AuthProfile authProfile) {
-        System.out.println(no);
-
-        Optional<Post> post = repo.findPostByNo(no);
-
-
-        if (!post.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        if (post.get().getNo() != no) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        repo.deleteById(no);
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @Auth
-    @PutMapping(value = "/{no}")
-    public ResponseEntity modifyPost(@PathVariable long no, @RequestBody PostModifyRequest post, @RequestAttribute AuthProfile authProfile) {
-        System.out.println(no);
-        System.out.println(post);
-
-        // 1. 키값으로 조회해옴
-        Optional<Post> findedPost = repo.findById(authProfile.getId());
-        // 2. 해당 레코드가 있는지 확인
-        if (!findedPost.isPresent()) {
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        //수정해서 저장할 포스트
-        Post toModifyPost = findedPost.get();
-
-        if (post.getTitle() != null && !post.getTitle().isEmpty()) {
-            toModifyPost.setTitle(post.getTitle());
-        }
-        if (post.getReview() != null && !post.getReview().isEmpty()) {
-            toModifyPost.setReview(post.getReview());
-        }
-        //update
-        repo.save(toModifyPost);
-
-        //ok 처리
-        return ResponseEntity.ok().build();
-    }
+//    @Auth
+//    @DeleteMapping(value = "/{no}")
+//    public ResponseEntity removePost(@PathVariable long no, @RequestAttribute AuthProfile authProfile) {
+//        System.out.println(no);
+//
+//        Optional<Post> post = repo.findPostByNo(no);
+//
+//
+//        if (!post.isPresent()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//
+//        if (post.get().getNo() != no) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+//        }
+//        repo.deleteById(no);
+//        return ResponseEntity.status(HttpStatus.OK).build();
+//    }
+//
+//    @Auth
+//    @PutMapping(value = "/{no}")
+//    public ResponseEntity modifyPost(@PathVariable long no, @RequestBody PostModifyRequest post, @RequestAttribute AuthProfile authProfile) {
+//        System.out.println(no);
+//        System.out.println(post);
+//
+//        // 1. 키값으로 조회해옴
+//        Optional<Post> findedPost = repo.findById(authProfile.getId());
+//        // 2. 해당 레코드가 있는지 확인
+//        if (!findedPost.isPresent()) {
+//
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+//        }
+//        //수정해서 저장할 포스트
+//        Post toModifyPost = findedPost.get();
+//
+//        if (post.getTitle() != null && !post.getTitle().isEmpty()) {
+//            toModifyPost.setTitle(post.getTitle());
+//        }
+//        if (post.getReview() != null && !post.getReview().isEmpty()) {
+//            toModifyPost.setReview(post.getReview());
+//        }
+//        //update
+//        repo.save(toModifyPost);
+//
+//        //ok 처리
+//        return ResponseEntity.ok().build();
+//    }
 //    @Auth
 //    @PostMapping("/{no}/comments")
 //    public ResponseEntity addComments(
