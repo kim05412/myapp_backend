@@ -160,15 +160,15 @@ public class AuthController {
 //                .build();
     }
 
-   @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(HttpServletRequest request) {
-        // 클라이언트에서 전달받은 토큰을 무효화하거나 블랙리스트에 추가하는 작업 수행
-        // 로그아웃 성공 응답 반환
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "로그아웃 되었습니다.");
-       System.out.println(response);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
+//   @PostMapping("/logout")
+//    public ResponseEntity<Map<String, String>> logout(HttpServletRequest request) {
+//        // 클라이언트에서 전달받은 토큰을 무효화하거나 블랙리스트에 추가하는 작업 수행
+//        // 로그아웃 성공 응답 반환
+//        Map<String, String> response = new HashMap<>();
+//        response.put("status", "success");
+//        response.put("message", "로그아웃 되었습니다.");
+//       System.out.println(response);
+//        return ResponseEntity.status(HttpStatus.OK).body(response);
+//    }
     }
 
