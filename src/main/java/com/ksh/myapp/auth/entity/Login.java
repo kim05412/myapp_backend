@@ -18,7 +18,8 @@ public class Login {
 
     @Column(unique = true)
     private String userId;
-//
+
+//로그인시 입력 안할거면 제거
     @Column(unique = true)
     private String nickname;
 
