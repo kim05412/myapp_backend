@@ -46,17 +46,20 @@ public class AuthController {
     //회원가입 요청 처리
     @PostMapping(value = "/signup")
     public ResponseEntity<Map<String,Object>> signUp(@RequestBody SignupRequest req) {
+        System.out.println("회원가입");
+        // 1. validation (입력값 검증)
         Optional<Login> findByNickname = repo.findByNickname(req.getNickname());
         Optional<Login> findUserId = repo.findByUserId(req.getUserId());
-
+//닉네임 중복 검증
         if(findByNickname.isPresent()) {
             Map<String,Object> res = new HashMap<>();
-            res.put("message", "이미 존재하는 별명입니다.");
+            res.put("message", "nickname");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
         }
+        //아이디 중복 검증
         if(findUserId.isPresent()) {
             Map<String,Object> res = new HashMap<>();
-            res.put("message", "이미 존재하는 아이디입니다.");
+            res.put("message", "id");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
         }
         service.createIdentity(req);
@@ -66,6 +69,7 @@ public class AuthController {
         response.put("message", "회원가입이 완료되었습니다.");
         response.put("nickname", req.getNickname()); // 닉네임 값 추가
 
+        System.out.println(response);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -124,7 +128,7 @@ public class AuthController {
 
        String token = jwt.createToken(
                 l.getId(), l.getUserId(),
-                profile.get().getNickname(),profile.get().getCompanyName(),profile.get().getCompanyAddress());
+                profile.get().getNickname());
         System.out.println(token);
 
         // 3. cookie와 헤더를 생성한후 리다이렉트
@@ -136,28 +140,22 @@ public class AuthController {
         // 응답헤더에 쿠키 추가
         res.addCookie(cookie);
 
-        // 웹 첫페이지로 리다이렉트
-//        return ResponseEntity
-//                .status(HttpStatus.FOUND)
-//                .location(ServletUriComponentsBuilder
-//                        .fromHttpUrl("http://localhost:5502")
-//                        .build().toUri())
-//                .build();
+         //웹 첫페이지로 리다이렉트
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(ServletUriComponentsBuilder
+                        .fromHttpUrl("http://localhost:5502")
+                        .build().toUri())
+                .build();
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "로그인이 완료되었습니다.");
-        response.put("token", token);
+//응답할때  특정한 응답을 주고 싶을때
+//        Map<String, Object> response = new HashMap<>();
+//        response.put("status", "success");
+//        response.put("message", "로그인이 완료되었습니다.");
+//        response.put("token", token); // 암호화 되어있어서 클라이언트엥서 nickname 추출X
 //        response.put("nickname", profile.get().getNickname());// 닉네임 값 추가
+//        return ResponseEntity.status(HttpStatus.OK).body(response);
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-
-//        return ResponseEntity
-//                .status(HttpStatus.FOUND)
-//                .location(ServletUriComponentsBuilder
-//                        .fromHttpUrl("http://localhost:5502")
-//                        .build().toUri())
-//                .build();
     }
 
 //   @PostMapping("/logout")

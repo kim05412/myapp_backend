@@ -17,7 +17,7 @@ public class JwtUtil {
     public final long TOKEN_TIMEOUT = 1000 * 60 * 60 * 24 * 7;
 
     // JWT 토큰 생성
-    public String createToken(long id, String userId, String nickname, String companyName, String companyAddress) {
+    public String createToken(long id, String userId, String nickname) {
         // 토큰 생성시간과 만료시간을 만듦
         Date now = new Date();
         // 만료시간: 2차인증 이런게 잘걸려있으면 큰문제는 안됨. 내컴퓨터를 다른 사람이 쓴다.
@@ -27,13 +27,12 @@ public class JwtUtil {
         Date exp = new Date(now.getTime() + TOKEN_TIMEOUT);
 
         Algorithm algorithm = Algorithm.HMAC256(secret);
+
         return JWT.create()
                 // sub: 토큰 소유자
                 .withSubject(String.valueOf(id))
                 .withClaim("userId", userId)
                 .withClaim("nickname", nickname)
-                .withClaim("companyName", companyName)
-                .withClaim("companyAddress", companyAddress)
                 .withIssuedAt(now)
                 .withExpiresAt(exp)
                 .sign(algorithm);
@@ -53,21 +52,11 @@ public class JwtUtil {
                             .getClaim("nickname").asString();
            String userId = decodedJWT
                             .getClaim("userId").asString();
-           String companyName = decodedJWT
-                    .getClaim("companyName").asString();
-           String companyAddress = decodedJWT
-                    .getClaim("companyAddress").asString();
-
-
-
-            return AuthProfile.builder()
-                    .id(id)
-                    .userId(userId)
-                    .nickname(nickname)
-                    .companyName(companyName)
-                    .companyAddress(companyAddress)
-                    .build();
-
+           return AuthProfile.builder()
+                   .id(id)
+                   .userId(userId)
+                   .nickname(nickname)
+                   .build();
         } catch (JWTVerificationException e) {
             // 토큰 검증 오류 상황
             return null;

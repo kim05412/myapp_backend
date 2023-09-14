@@ -44,7 +44,7 @@ public class AuthService {
                         .year(req.getYear())
                         .companyName(req.getCompanyName())
                         .companyAddress(req.getCompanyAddress())
-                        .file(req.getFile())
+                        .image(req.getImage())
                         .login(savedLogin) // 연결할 로그인 정보(이전단계에서 저장된 로그인 정보-일관성 유지) 가져와서 저장
                         .build(); //생성한거 반환
         long profileId = profileRepo.save(toSaveProfile).getId(); // 프로필 정보를 db에 저장->프로필 정보 중 id값만 추출-> 할당

@@ -18,5 +18,5 @@ public class SignupRequest {
         private Long year;
         private String companyName;
         private String companyAddress;
-        private String file;
+        private String image;
 }

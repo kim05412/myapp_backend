@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
         //Profile 테이블에서 Login 객체와 연결된 Profile 객체를 찾음.
         Optional<Profile> findByLogin_Id(long id);
+        Optional<Profile> findByNickname(String nickname);
 }

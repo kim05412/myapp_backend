@@ -29,7 +29,8 @@ public class Profile {
     private Long year;
     private String companyName;
     private String companyAddress;
-    private String file;
+    @Column(length = 1024 * 1024 * 20)
+    private String image;
 
     @OneToOne
     private Login login;

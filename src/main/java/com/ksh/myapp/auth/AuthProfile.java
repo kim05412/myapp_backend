@@ -1,6 +1,7 @@
 package com.ksh.myapp.auth;
 
 import com.ksh.myapp.post.Post;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,8 @@ public class AuthProfile {
     private String companyName;
     private String companyAddress;
     private Long year;
-    private String file;
+    @Column(length = 1024 * 1024 * 20)
+    private String image;
 
 
 }
