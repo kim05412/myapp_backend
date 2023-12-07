@@ -21,7 +21,7 @@ import java.util.*;
 
 @Tag(name="포스트 관리 및 처리 | API")
 @RestController
-@RequestMapping(value = "posts")
+@RequestMapping(value = "api/app/posts")
 public class PostController {
     @Autowired
     PostRepository repo;
@@ -41,15 +41,6 @@ public class PostController {
         return list;
 
     }
-//    @GetMapping(value = "/paging")
-//    public Page<Post> getPostsPaging(@RequestParam int page, @RequestParam int size) {
-//        System.out.println(page + "1");
-//        System.out.println(size + "1");
-//
-//        Sort sort = Sort.by("no").descending();
-//        PageRequest pageRequest = PageRequest.of(page, size, sort);
-//        return repo.findAll(pageRequest);
-//    }
 
     @Operation(summary = "포스트 작성", security = { @SecurityRequirement(name = "bearer-key") })
     @Auth
@@ -89,82 +80,4 @@ public class PostController {
 
         return ResponseEntity.ok().build(); // 이렇게하면 그냥 생성되고 끝!
     }
-
-//    @Auth
-//    @DeleteMapping(value = "/{no}")
-//    public ResponseEntity removePost(@PathVariable long no, @RequestAttribute AuthProfile authProfile) {
-//        System.out.println(no);
-//
-//        Optional<Post> post = repo.findPostByNo(no);
-//
-//
-//        if (!post.isPresent()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-//        }
-//
-//        if (post.get().getNo() != no) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-//        repo.deleteById(no);
-//        return ResponseEntity.status(HttpStatus.OK).build();
-//    }
-//
-//    @Auth
-//    @PutMapping(value = "/{no}")
-//    public ResponseEntity modifyPost(@PathVariable long no, @RequestBody PostModifyRequest post, @RequestAttribute AuthProfile authProfile) {
-//        System.out.println(no);
-//        System.out.println(post);
-//
-//        // 1. 키값으로 조회해옴
-//        Optional<Post> findedPost = repo.findById(authProfile.getId());
-//        // 2. 해당 레코드가 있는지 확인
-//        if (!findedPost.isPresent()) {
-//
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-//        }
-//        //수정해서 저장할 포스트
-//        Post toModifyPost = findedPost.get();
-//
-//        if (post.getTitle() != null && !post.getTitle().isEmpty()) {
-//            toModifyPost.setTitle(post.getTitle());
-//        }
-//        if (post.getReview() != null && !post.getReview().isEmpty()) {
-//            toModifyPost.setReview(post.getReview());
-//        }
-//        //update
-//        repo.save(toModifyPost);
-//
-//        //ok 처리
-//        return ResponseEntity.ok().build();
-//    }
-//    @Auth
-//    @PostMapping("/{no}/comments")
-//    public ResponseEntity addComments(
-//            @PathVariable long no,
-//            @RequestBody PostComment postComment,
-//            @RequestAttribute AuthProfile authProfile) {
-//
-//        Optional<Post> post = repo.findById(no);
-//        if(!post.isPresent()) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-//        }
-//
-//        // 커멘트 추가
-//        postComment.setPost(post.get());
-////        postComment.setOwnerId(authProfile.getId());
-////        postComment.setOwnerName(authProfile.getNickname());
-//
-//        // 커멘트 건수 증가 및 최근 커멘트 표시
-//        Post findedPost = post.get();
-//        findedPost.setLatestComment(postComment.getContent());
-//        findedPost.setCommentCnt(post.get().getCommentCnt() + 1);
-//
-//        // 트랜잭션 처리
-//        service.createComment(findedPost, postComment);
-//
-//        return ResponseEntity.status(HttpStatus.CREATED).build();
-//    }
-
-
-
 }
